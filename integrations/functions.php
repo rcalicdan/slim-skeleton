@@ -50,6 +50,10 @@ if (! function_exists('cache_path')) {
 if (! function_exists('session')) {
     /**
      * Get the session instance or retrieve a session value.
+     *
+     * @param string|null $key The session key to retrieve, or null to get the session instance.
+     * @param mixed $default The fallback value if the session key does not exist.
+     * @return SessionInterface|mixed Returns the SessionInterface manager if $key is null; otherwise, the retrieved value.
      */
     function session(?string $key = null, mixed $default = null): mixed
     {
@@ -59,6 +63,7 @@ if (! function_exists('session')) {
             return $default;
         }
 
+        /** @var SessionInterface $session */
         $session = $container->get(SessionInterface::class);
 
         if ($key === null) {

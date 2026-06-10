@@ -17,4 +17,16 @@ class HomeController
             'title' => "Slim 4 Skeleton Works, {$name}!",
         ]);
     }
+
+    public function submit(Request $request, Response $response): Response
+    {
+        $request->validate([
+            'name'  => 'required|min:3',
+            'email' => 'required|email',
+        ]);
+
+        session()->getFlash()->add('success', 'Form validated and submitted successfully!');
+
+        return $response->withStatus(302)->withHeader('Location', '/');
+    }
 }

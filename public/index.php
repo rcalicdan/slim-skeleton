@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+error_reporting(E_ALL & ~E_DEPRECATED);
+
 use DI\ContainerBuilder;
 use Integrations\Http\Request;
 use Integrations\Registry;

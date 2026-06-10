@@ -6,8 +6,6 @@ namespace Integrations\Http;
 
 use Slim\Psr7\Response as SlimResponse;
 
-use function Integrations\blade_view;
-
 class Response extends SlimResponse
 {
     /**
