@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use DI\ContainerBuilder;
 use Integrations\Http\Request;
+use Integrations\Registry;
 use Integrations\View\BladeRenderer;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Slim\Factory\AppFactory;
@@ -25,6 +26,7 @@ if (! empty($cachePath)) {
 $containerBuilder->addDefinitions(config('container.dependency_map', []));
 
 $container = $containerBuilder->build();
+Registry::set($container);
 AppFactory::setContainer($container);
 
 $responseFactory = $container->get(ResponseFactoryInterface::class);

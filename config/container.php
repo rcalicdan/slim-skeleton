@@ -11,7 +11,6 @@ use Odan\Session\SessionManagerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 
-use function Integrations\cache_path;
 use function Rcalicdan\ConfigLoader\config;
 use function Rcalicdan\ConfigLoader\env;
 

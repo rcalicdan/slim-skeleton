@@ -6,6 +6,7 @@ namespace Tests\Fixtures;
 
 use DI\Container;
 use DI\ContainerBuilder;
+use Integrations\Registry;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Slim\App;
 use Slim\Factory\AppFactory;
@@ -27,6 +28,8 @@ class SetupTestEnvironment
 
         /** @var Container $container */
         $container = $containerBuilder->build();
+
+        Registry::set($container);
 
         AppFactory::setContainer($container);
 
