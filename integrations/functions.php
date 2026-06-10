@@ -94,8 +94,8 @@ if (! function_exists('error')) {
     {
         $errors = session('errors') ?? [];
         
-        if (isset($errors[$key]) && is_array($errors[$key])) {
-            return reset($errors[$key]); 
+        if (isset($errors[$key]) && is_string($errors[$key])) {
+            return $errors[$key]; 
         }
         
         return null;
@@ -111,5 +111,17 @@ if (! function_exists('has_error')) {
         $errors = session('errors') ?? [];
         
         return isset($errors[$key]);
+    }
+}
+
+if (! function_exists('error_all')) {
+    /**
+     * Retrieve all validation error messages.
+     * 
+     * @return array<string, string>
+     */
+    function error_all(): array
+    {
+        return session('errors') ?? [];
     }
 }

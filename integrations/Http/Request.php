@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Integrations\Http;
 
 use Integrations\Http\Exceptions\ValidationException;
-use Rakit\Validation\Validator;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Headers;
 use Slim\Psr7\Request as SlimRequest;
+use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 class Request extends SlimRequest
 {
@@ -88,15 +88,15 @@ class Request extends SlimRequest
      */
     public function validate(array $rules): array
     {
-        $validator = new Validator();
-
+        $factory = new ValidationFactory();
+        
         $data = $this->getParsedBody() ?? $this->getQueryParams();
-
-        $validation = $validator->make((array) $data, $rules);
+        
+        $validation = $factory->make((array) $data, $rules);
         $validation->validate();
 
         if ($validation->fails()) {
-            throw new ValidationException($validation->errors()->toArray());
+            throw new ValidationException($validation->errors()->firstOfAll());
         }
 
         return $validation->getValidData();
