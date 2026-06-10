@@ -31,6 +31,7 @@
         @endif
 
         <form action="/submit" method="POST">
+            @csrf
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" 

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Integrations\Http\Middleware\CsrfMiddleware;
 use Integrations\Http\Middleware\WebValidationMiddleware;
 use Odan\Session\Middleware\SessionStartMiddleware;
 use Slim\App;
@@ -32,6 +33,7 @@ return function (App $app): void {
      * -------------------------------------------------------------------------
      */
     $app->add(WebValidationMiddleware::class);
+    $app->add(CsrfMiddleware::class);
     $app->add(SessionStartMiddleware::class);
 
     /**
