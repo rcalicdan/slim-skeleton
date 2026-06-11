@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use Integrations\Http\Middleware\BindRequestMiddleware;
 use Integrations\Http\Middleware\CsrfMiddleware;
 use Integrations\Http\Middleware\WebValidationMiddleware;
-use Integrations\Http\Middleware\BindRequestMiddleware;
-use Slim\Middleware\MethodOverrideMiddleware;
-use Slim\Middleware\RoutingMiddleware;
 use Odan\Session\Middleware\SessionStartMiddleware;
 use Slim\App;
+use Slim\Middleware\MethodOverrideMiddleware;
+use Slim\Middleware\RoutingMiddleware;
 
 use function Rcalicdan\ConfigLoader\env;
 

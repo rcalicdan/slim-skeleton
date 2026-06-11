@@ -200,4 +200,3 @@ if (! function_exists('method_field')) {
         return '<input type="hidden" name="_METHOD" value="' . $cleanedMethod . '"/>';
     }
 }
-

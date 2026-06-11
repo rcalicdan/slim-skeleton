@@ -106,5 +106,6 @@ it('csrf middleware blocks state changing requests with invalid tokens', functio
     $response = $middleware->process($request, $handler);
 
     expect($response->getStatusCode())->toBe(403)
-        ->and((string) $response->getBody())->toContain('CSRF token is missing or invalid.');
+        ->and((string) $response->getBody())->toContain('CSRF token is missing or invalid.')
+    ;
 });

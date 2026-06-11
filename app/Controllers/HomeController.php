@@ -12,7 +12,7 @@ class HomeController
     public function index(Request $request, Response $response): Response
     {
         return $response->view('home', [
-            'title' => "Slim 4 Skeleton Works!",
+            'title' => 'Slim 4 Skeleton Works!',
         ]);
     }
 }

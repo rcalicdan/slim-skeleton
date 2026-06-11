@@ -5,6 +5,9 @@ declare(strict_types=1);
 use eftec\bladeone\BladeOne;
 use Integrations\Http\ResponseFactory;
 use Integrations\View\BladeRenderer;
+use Integrations\View\Directives\EndErrorDirective;
+use Integrations\View\Directives\ErrorDirective;
+use Integrations\View\Directives\UpperDirective;
 use Odan\Session\PhpSession;
 use Odan\Session\SessionInterface;
 use Odan\Session\SessionManagerInterface;
@@ -25,6 +28,7 @@ return [
             ? cache_path(__DIR__ . '/../var/cache/di')
             : null,
     ],
+
     'dependency_map' => [
         PhpSession::class => function () {
             return new PhpSession([
@@ -49,12 +53,34 @@ return [
             return $c->get(App::class)->getRouteCollector()->getRouteParser();
         },
 
-        BladeOne::class => function () {
-            return new BladeOne(
+        BladeOne::class => function (ContainerInterface $c) {
+            $blade = new BladeOne(
                 config('blade.templates_path'),
                 config('blade.cache_path'),
                 config('blade.mode')
             );
+
+            $blade->directive('upper', $c->get(UpperDirective::class));
+            $blade->directive('error', $c->get(ErrorDirective::class));
+            $blade->directive('enderror', $c->get(EndErrorDirective::class));
+
+            /** @var array<string, callable|class-string> $directives */
+            $directives = config('blade.directives', []);
+
+            foreach ($directives as $name => $handler) {
+                $callable = is_string($handler) ? $c->get($handler) : $handler;
+                $blade->directive($name, $callable);
+            }
+
+            /** @var array<string, callable|class-string> $directivesRt */
+            $directivesRt = config('blade.directives_rt', []);
+
+            foreach ($directivesRt as $name => $handler) {
+                $callable = is_string($handler) ? $c->get($handler) : $handler;
+                $blade->directiveRT($name, $callable);
+            }
+
+            return $blade;
         },
 
         BladeRenderer::class => function (ContainerInterface $c) {

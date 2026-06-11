@@ -10,7 +10,9 @@ use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 abstract class FormRequest
 {
-    public function __construct(protected readonly Request $request) {}
+    public function __construct(protected readonly Request $request)
+    {
+    }
 
     /**
      * @return array<string, string|array<mixed>>
@@ -80,7 +82,7 @@ abstract class FormRequest
         $finalData = $this->after($validation->getValidData());
 
         // SECURITY: Strip out route arguments before returning the validated data.
-        // This forces the developer to use $request->route('id') in the controller, 
+        // This forces the developer to use $request->route('id') in the controller,
         // completely eliminating the parameter overwriting risk.
         $routeKeys = array_keys($this->request->allRouteArgs());
         foreach ($routeKeys as $key) {

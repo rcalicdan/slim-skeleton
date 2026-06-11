@@ -7,5 +7,4 @@ use Slim\App;
 
 return function (App $app): void {
     $app->get('/', [HomeController::class, 'index']);
-    $app->post('/submit', [HomeController::class, 'submit']);
 };

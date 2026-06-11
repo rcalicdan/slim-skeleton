@@ -64,5 +64,6 @@ it('generates a correct html response', function () {
 
     expect($response->getStatusCode())->toBe(202)
         ->and($response->getHeaderLine('Content-Type'))->toBe('text/html')
-        ->and((string) $response->getBody())->toBe('<h1>Hello World</h1>');
+        ->and((string) $response->getBody())->toBe('<h1>Hello World</h1>')
+    ;
 });
