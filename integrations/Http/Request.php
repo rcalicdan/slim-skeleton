@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Integrations\Http;
 
 use Integrations\Http\Exceptions\ValidationException;
+use Integrations\Registry;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Headers;
 use Slim\Psr7\Request as SlimRequest;
@@ -117,7 +118,15 @@ class Request extends SlimRequest
                 );
             }
 
-            return new $rules($this)->validate();
+            $container = Registry::get();
+
+            if ($container instanceof \DI\Container) {
+                $formRequest = $container->make($rules, ['request' => $this]);
+            } else {
+                $formRequest = new $rules($this);
+            }
+
+            return $formRequest->validate();
         }
 
         $factory = new ValidationFactory();
