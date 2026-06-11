@@ -63,6 +63,7 @@ return [
             $blade->directive('upper', $c->get(UpperDirective::class));
             $blade->directive('error', $c->get(ErrorDirective::class));
             $blade->directive('enderror', $c->get(EndErrorDirective::class));
+            $blade->directive('method', $c->get(MethodDirective::class)); 
 
             /** @var array<string, callable|class-string> $directives */
             $directives = config('blade.directives', []);

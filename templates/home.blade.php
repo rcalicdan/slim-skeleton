@@ -209,7 +209,7 @@
                     Method Override middleware.</p>
                 <code-block>&lt;form action="/update" method="POST"&gt;
                     @csrf
-                    {!! method_field('PUT') !!}
+                    @method('PUT')
                     &lt;/form&gt;</code-block>
             </div>
 
