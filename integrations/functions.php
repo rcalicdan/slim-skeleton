@@ -6,7 +6,6 @@ use Integrations\Registry;
 use Integrations\View\BladeRenderer;
 use Odan\Session\SessionInterface;
 use Psr\Http\Message\ResponseInterface;
-use Slim\Factory\AppFactory;
 
 if (! function_exists('blade_view')) {
     /**
@@ -53,12 +52,13 @@ if (! function_exists('session')) {
      *
      * @param string|null $key The session key to retrieve, or null to get the session instance.
      * @param mixed $default The fallback value if the session key does not exist.
+     *
      * @return SessionInterface|mixed Returns the SessionInterface manager if $key is null; otherwise, the retrieved value.
      */
     function session(?string $key = null, mixed $default = null): mixed
     {
         $container = Registry::get();
-        
+
         if ($container === null) {
             return $default;
         }
@@ -81,7 +81,7 @@ if (! function_exists('old')) {
     function old(string $key, mixed $default = null): mixed
     {
         $old = session('old') ?? [];
-        
+
         return $old[$key] ?? $default;
     }
 }
@@ -93,11 +93,11 @@ if (! function_exists('error')) {
     function error(string $key): ?string
     {
         $errors = session('errors') ?? [];
-        
+
         if (isset($errors[$key]) && is_string($errors[$key])) {
-            return $errors[$key]; 
+            return $errors[$key];
         }
-        
+
         return null;
     }
 }
@@ -109,7 +109,7 @@ if (! function_exists('has_error')) {
     function has_error(string $key): bool
     {
         $errors = session('errors') ?? [];
-        
+
         return isset($errors[$key]);
     }
 }
@@ -117,7 +117,7 @@ if (! function_exists('has_error')) {
 if (! function_exists('error_all')) {
     /**
      * Retrieve all validation error messages.
-     * 
+     *
      * @return array<string, string>
      */
     function error_all(): array

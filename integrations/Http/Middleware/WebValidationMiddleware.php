@@ -24,10 +24,10 @@ class WebValidationMiddleware implements MiddlewareInterface
     {
         try {
             $response = $handler->handle($request);
-            
+
             $this->session->delete('errors');
             $this->session->delete('old');
-            
+
             return $response;
         } catch (ValidationException $e) {
             $this->session->set('errors', $e->errors);
@@ -38,7 +38,8 @@ class WebValidationMiddleware implements MiddlewareInterface
             $referer = $request->getHeaderLine('Referer') ?: '/';
 
             return $this->responseFactory->createResponse(302)
-                ->withHeader('Location', $referer);
+                ->withHeader('Location', $referer)
+            ;
         }
     }
 }

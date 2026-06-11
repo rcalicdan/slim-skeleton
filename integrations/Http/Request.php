@@ -32,7 +32,8 @@ class Request extends SlimRequest
         /** @var self $request */
         $request = $request
             ->withParsedBody($slimRequest->getParsedBody())
-            ->withQueryParams($slimRequest->getQueryParams());
+            ->withQueryParams($slimRequest->getQueryParams())
+        ;
 
         return $request;
     }
@@ -80,18 +81,30 @@ class Request extends SlimRequest
     }
 
     /**
-     * Validate the request data.
-     * 
-     * @param array<string, string|array<mixed>> $rules
+     * @param array<string, string|array<mixed>>|class-string<FormRequest>|FormRequest $rules
+     *
      * @return array<string, mixed>
-     * @throws ValidationException
+     *
+     * @throws ValidationException|\InvalidArgumentException
      */
-    public function validate(array $rules): array
+    public function validate(array|string|FormRequest $rules): array
     {
+        if ($rules instanceof FormRequest) {
+            return $rules->validate();
+        }
+
+        if (\is_string($rules)) {
+            if (! is_a($rules, FormRequest::class, true)) {
+                throw new \InvalidArgumentException(
+                    "{$rules} must extend " . FormRequest::class
+                );
+            }
+
+            return new $rules($this)->validate();
+        }
+
         $factory = new ValidationFactory();
-        
         $data = $this->getParsedBody() ?? $this->getQueryParams();
-        
         $validation = $factory->make((array) $data, $rules);
         $validation->validate();
 

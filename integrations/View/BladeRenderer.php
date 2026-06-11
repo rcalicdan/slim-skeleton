@@ -16,7 +16,8 @@ class BladeRenderer
     public function __construct(
         private readonly BladeOne $blade,
         private readonly ResponseFactoryInterface $responseFactory
-    ) {}
+    ) {
+    }
 
     /**
      * Initialize the BladeRenderer instance.

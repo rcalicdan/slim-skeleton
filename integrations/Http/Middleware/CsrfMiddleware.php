@@ -15,7 +15,7 @@ class CsrfMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private readonly ResponseFactory $responseFactory,
-        private readonly SessionInterface $session 
+        private readonly SessionInterface $session
     ) {
     }
 
@@ -25,20 +25,20 @@ class CsrfMiddleware implements MiddlewareInterface
 
         if (\in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             $parsedBody = $request->getParsedBody();
-            
+
             $token = \is_array($parsedBody) ? ($parsedBody['_token'] ?? '') : '';
             $sessionToken = $this->session->get('_token', '');
 
             if (empty($token) || $token !== $sessionToken) {
                 $response = $this->responseFactory->createResponse(403);
-                
+
                 return $response->json([
-                    'error'   => 'Forbidden',
-                    'message' => 'CSRF token is missing or invalid.'
+                    'error' => 'Forbidden',
+                    'message' => 'CSRF token is missing or invalid.',
                 ]);
             }
         } else {
-            if (!$this->session->has('_token') || empty($this->session->get('_token'))) {
+            if (! $this->session->has('_token') || empty($this->session->get('_token'))) {
                 $this->session->set('_token', bin2hex(random_bytes(20)));
             }
         }

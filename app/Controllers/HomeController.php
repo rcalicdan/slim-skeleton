@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Requests\SubmitFormRequest;
 use Integrations\Http\Request;
 use Integrations\Http\Response;
 
@@ -20,10 +21,7 @@ class HomeController
 
     public function submit(Request $request, Response $response): Response
     {
-        $request->validate([
-            'name'  => 'required|min:3',
-            'email' => 'required|email',
-        ]);
+        $request->validate(SubmitFormRequest::class);
 
         session()->getFlash()->add('success', 'Form validated and submitted successfully!');
 

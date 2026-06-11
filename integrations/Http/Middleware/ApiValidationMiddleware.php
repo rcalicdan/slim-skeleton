@@ -13,7 +13,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class ApiValidationMiddleware implements MiddlewareInterface
 {
-    public function __construct(private readonly ResponseFactory $responseFactory) {}
+    public function __construct(private readonly ResponseFactory $responseFactory)
+    {
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -24,7 +26,7 @@ class ApiValidationMiddleware implements MiddlewareInterface
 
             return $response->json([
                 'message' => $e->getMessage(),
-                'errors'  => $e->errors,
+                'errors' => $e->errors,
             ]);
         }
     }
