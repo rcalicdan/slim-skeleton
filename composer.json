@@ -40,6 +40,9 @@
         }
     },
     "scripts": {
+        "post-create-project-cmd": [
+            "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
         "test": "./vendor/bin/pest",
         "format": "./vendor/bin/pint",
         "analyze": "./vendor/bin/phpstan analyse"
