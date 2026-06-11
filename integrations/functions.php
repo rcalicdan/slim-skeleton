@@ -188,3 +188,16 @@ if (! function_exists('previous_url')) {
         return $request->previousUrl($fallback);
     }
 }
+
+if (! function_exists('method_field')) {
+    /**
+     * Generate a hidden HTML input field to spoof HTTP verbs.
+     */
+    function method_field(string $method): string
+    {
+        $cleanedMethod = strtoupper(trim($method, "'\" "));
+
+        return '<input type="hidden" name="_method" value="' . $cleanedMethod . '"/>';
+    }
+}
+

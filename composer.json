@@ -40,6 +40,7 @@
         }
     },
     "scripts": {
+        "test": "./vendor/bin/pest",
         "format": "./vendor/bin/pint",
         "analyze": "./vendor/bin/phpstan analyse"
     }

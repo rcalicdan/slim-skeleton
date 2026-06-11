@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-use Integrations\Http\Middleware\BindRequestMiddleware;
 use Integrations\Http\Middleware\CsrfMiddleware;
 use Integrations\Http\Middleware\WebValidationMiddleware;
+use Integrations\Http\Middleware\BindRequestMiddleware;
+use Slim\Middleware\MethodOverrideMiddleware; // <-- Import this
 use Odan\Session\Middleware\SessionStartMiddleware;
 use Slim\App;
 
@@ -29,7 +30,13 @@ return function (App $app): void {
     $app->addRoutingMiddleware();
 
     /**
-     * Binds the request to the container.
+     * Method Override Middleware.
+     * MUST be added after addRoutingMiddleware() so it runs BEFORE routing (LIFO order).
+     */
+    $app->add(MethodOverrideMiddleware::class);
+
+    /**
+     * Binds the current request to the container for global helpers.
      */
     $app->add(BindRequestMiddleware::class);
 

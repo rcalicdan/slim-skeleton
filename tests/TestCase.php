@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use DI\Container;
 use DI\ContainerBuilder;
 use Integrations\Http\Request;
 use Integrations\Http\Response;
@@ -23,7 +24,10 @@ abstract class TestCase extends BaseTestCase
 {
     protected App $app;
 
-    protected ContainerInterface $container;
+    /**
+     * Use DI\Container instead of ContainerInterface to allow set() calls.
+     */
+    protected Container $container;
 
     protected function setUp(): void
     {
@@ -93,5 +97,49 @@ abstract class TestCase extends BaseTestCase
         $data['_token'] = 'test-token';
 
         return $this->request('POST', $path, $data);
+    }
+
+    /**
+     * Helper for PUT requests.
+     */
+    protected function put(string $path, array $data = []): Response
+    {
+        $session = $this->container->get(SessionInterface::class);
+        $session->set('_token', 'test-token');
+        $data['_token'] = 'test-token';
+
+        return $this->request('PUT', $path, $data);
+    }
+
+    /**
+     * Helper for PATCH requests.
+     */
+    protected function patch(string $path, array $data = []): Response
+    {
+        $session = $this->container->get(SessionInterface::class);
+        $session->set('_token', 'test-token');
+        $data['_token'] = 'test-token';
+
+        return $this->request('PATCH', $path, $data);
+    }
+
+    /**
+     * Helper for DELETE requests.
+     */
+    protected function delete(string $path, array $data = []): Response
+    {
+        $session = $this->container->get(SessionInterface::class);
+        $session->set('_token', 'test-token');
+        $data['_token'] = 'test-token';
+
+        return $this->request('DELETE', $path, $data);
+    }
+
+    /**
+     * Helper for OPTIONS requests.
+     */
+    protected function options(string $path, array $data = []): Response
+    {
+        return $this->request('OPTIONS', $path, $data);
     }
 }
