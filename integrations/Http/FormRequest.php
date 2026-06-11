@@ -10,9 +10,7 @@ use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 abstract class FormRequest
 {
-    public function __construct(protected readonly Request $request)
-    {
-    }
+    public function __construct(protected readonly Request $request) {}
 
     /**
      * @return array<string, string|array<mixed>>
@@ -58,25 +56,23 @@ abstract class FormRequest
     }
 
     /**
-     * @return array<string, mixed>
-     *
+     * @return ValidatedData
      * @throws ValidationException
      */
-    public function validate(): array
+    public function validate(): ValidatedData
     {
         /** @var ValidationFactory $factory */
         $factory = Registry::get()->get(ValidationFactory::class);
+        $raw     = (array) ($this->request->getParsedBody() ?? $this->request->getQueryParams());
 
-        $raw = (array) ($this->request->getParsedBody() ?? $this->request->getQueryParams());
-
-        $data = $this->prepareForValidation($raw);
+        $data       = $this->prepareForValidation($raw);
         $validation = $factory->make($data, $this->rules());
 
         foreach ($this->attributes() as $field => $alias) {
             $validation->setAlias($field, $alias);
         }
 
-        if (! empty($this->messages())) {
+        if (!empty($this->messages())) {
             $validation->messages()->add('en', $this->messages());
         }
 
@@ -85,8 +81,10 @@ abstract class FormRequest
         if ($validation->fails()) {
             throw new ValidationException($validation->errors()->firstOfAll());
         }
+        
+        $finalData = $this->after($validation->getValidData());
 
-        return $this->after($validation->getValidData());
+        return new ValidatedData($finalData);
     }
 
     public function input(string $key, mixed $default = null): mixed

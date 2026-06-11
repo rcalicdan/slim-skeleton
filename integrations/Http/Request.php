@@ -103,11 +103,11 @@ class Request extends SlimRequest
     /**
      * @param array<string, string|array<mixed>>|class-string<FormRequest>|FormRequest $rules
      *
-     * @return array<string, mixed>
+     * @return ValidatedData
      *
      * @throws ValidationException|\InvalidArgumentException
      */
-    public function validate(array|string|FormRequest $rules): array
+    public function validate(array|string|FormRequest $rules): ValidatedData
     {
         if ($rules instanceof FormRequest) {
             return $rules->validate();
@@ -142,6 +142,6 @@ class Request extends SlimRequest
             throw new ValidationException($validation->errors()->firstOfAll());
         }
 
-        return $validation->getValidData();
+        return new ValidatedData($validation->getValidData());
     }
 }
