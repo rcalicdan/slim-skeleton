@@ -16,8 +16,7 @@ class BladeRenderer
     public function __construct(
         private readonly BladeOne $blade,
         private readonly ResponseFactoryInterface $responseFactory
-    ) {
-    }
+    ) {}
 
     /**
      * Initialize the BladeRenderer instance.
@@ -54,6 +53,7 @@ class BladeRenderer
      */
     public function render(string $template, array $data = [], ?ResponseInterface $response = null): ResponseInterface
     {
+        $this->blade->csrf_token = (string) session('_token');
         $response ??= $this->responseFactory->createResponse();
         $response->getBody()->write($this->blade->run($template, $data));
 
