@@ -6,14 +6,14 @@ use Integrations\Http\Request;
 use Integrations\Http\Response;
 use Integrations\Http\ValidatedData;
 
-
 it('retrieves input from parsed body or query fallback', function () {
     $request = Request::createTestRequest('POST', '/test-route?query_param=query_value');
     $request = $request->withParsedBody(['body_param' => 'body_value']);
 
-    expect($request->input('body_param'))->toBe('body_value')      
-        ->and($request->input('query_param'))->toBe('query_value')  
-        ->and($request->input('missing', 'default'))->toBe('default');
+    expect($request->input('body_param'))->toBe('body_value')
+        ->and($request->input('query_param'))->toBe('query_value')
+        ->and($request->input('missing', 'default'))->toBe('default')
+    ;
 });
 
 it('checks if input values exist and are filled', function () {
@@ -24,26 +24,27 @@ it('checks if input values exist and are filled', function () {
         ->and($request->has('empty_param'))->toBeTrue()
         ->and($request->has('missing_param'))->toBeFalse()
         ->and($request->filled('filled_param'))->toBeTrue()
-        ->and($request->filled('empty_param'))->toBeFalse();
+        ->and($request->filled('empty_param'))->toBeFalse()
+    ;
 });
 
 it('can validate direct array rules on the request object', function () {
     $request = Request::createTestRequest('POST', '/submit');
     $request = $request->withParsedBody([
         'username' => 'testuser',
-        'email'    => 'test@example.com',
+        'email' => 'test@example.com',
     ]);
 
     $validated = $request->validate([
         'username' => 'required|min:3',
-        'email'    => 'required|email',
+        'email' => 'required|email',
     ]);
 
     expect($validated)->toBeInstanceOf(ValidatedData::class)
         ->and($validated->get('username'))->toBe('testuser')
-        ->and($validated->get('email'))->toBe('test@example.com');
+        ->and($validated->get('email'))->toBe('test@example.com')
+    ;
 });
-
 
 it('generates a json response and honors your status code fallback logic', function () {
     $response = new Response();
@@ -52,7 +53,8 @@ it('generates a json response and honors your status code fallback logic', funct
 
     expect($response->getStatusCode())->toBe(201)
         ->and($response->getHeaderLine('Content-Type'))->toBe('application/json')
-        ->and((string) $response->getBody())->toBe('{"message":"Created"}');
+        ->and((string) $response->getBody())->toBe('{"message":"Created"}')
+    ;
 });
 
 it('generates a correct html response', function () {

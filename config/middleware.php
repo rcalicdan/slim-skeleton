@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Integrations\Http\Middleware\BindRequestMiddleware;
 use Integrations\Http\Middleware\CsrfMiddleware;
 use Integrations\Http\Middleware\WebValidationMiddleware;
 use Odan\Session\Middleware\SessionStartMiddleware;
@@ -26,6 +27,11 @@ return function (App $app): void {
      * to map requests to their correct controllers.
      */
     $app->addRoutingMiddleware();
+
+    /**
+     * Binds the request to the container.
+     */
+    $app->add(BindRequestMiddleware::class);
 
     /**
      * -------------------------------------------------------------------------

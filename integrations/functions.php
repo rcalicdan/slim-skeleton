@@ -6,6 +6,7 @@ use Integrations\Registry;
 use Integrations\View\BladeRenderer;
 use Odan\Session\SessionInterface;
 use Psr\Http\Message\ResponseInterface;
+use Slim\Interfaces\RouteParserInterface;
 
 if (! function_exists('blade_view')) {
     /**
@@ -123,5 +124,67 @@ if (! function_exists('error_all')) {
     function error_all(): array
     {
         return session('errors') ?? [];
+    }
+}
+
+if (! function_exists('route')) {
+    /**
+     * Generate a URL for a named route.
+     *
+     * @param string $routeName The name of the route.
+     * @param array<string, string> $data Route parameters (e.g. ['id' => 1]).
+     * @param array<string, string> $queryParams Query string parameters.
+     *
+     * @return string The generated URL.
+     */
+    function route(string $routeName, array $data = [], array $queryParams = []): string
+    {
+        $container = Registry::get();
+
+        if ($container === null) {
+            return '';
+        }
+
+        $parser = $container->get(RouteParserInterface::class);
+
+        return $parser->urlFor($routeName, $data, $queryParams);
+    }
+}
+
+if (! function_exists('current_url')) {
+    /**
+     * Get the current URL.
+     *
+     * @param bool $withQuery Whether to include the query string.
+     */
+    function current_url(bool $withQuery = false): string
+    {
+        $container = Registry::get();
+        if (! $container) {
+            return '';
+        }
+
+        /** @var Integrations\Http\Request $request */
+        $request = $container->get(Integrations\Http\Request::class);
+
+        return $withQuery ? $request->fullUrl() : $request->url();
+    }
+}
+
+if (! function_exists('previous_url')) {
+    /**
+     * Get the previous URL.
+     */
+    function previous_url(string $fallback = '/'): string
+    {
+        $container = Registry::get();
+        if (! $container) {
+            return $fallback;
+        }
+
+        /** @var Integrations\Http\Request $request */
+        $request = $container->get(Integrations\Http\Request::class);
+
+        return $request->previousUrl($fallback);
     }
 }

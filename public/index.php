@@ -9,6 +9,7 @@ use Integrations\Http\Request;
 use Integrations\Registry;
 use Integrations\View\BladeRenderer;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Slim\App;
 use Slim\Factory\AppFactory;
 
 use function Rcalicdan\ConfigLoader\config;
@@ -33,6 +34,8 @@ AppFactory::setContainer($container);
 
 $responseFactory = $container->get(ResponseFactoryInterface::class);
 $app = AppFactory::create($responseFactory);
+
+$container->set(App::class, $app);
 
 $container->get(BladeRenderer::class);
 

@@ -9,6 +9,7 @@ use Integrations\Registry;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Headers;
 use Slim\Psr7\Request as SlimRequest;
+use Slim\Routing\RouteContext;
 use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 class Request extends SlimRequest
@@ -33,7 +34,8 @@ class Request extends SlimRequest
         /** @var self $request */
         $request = $request
             ->withParsedBody($slimRequest->getParsedBody())
-            ->withQueryParams($slimRequest->getQueryParams());
+            ->withQueryParams($slimRequest->getQueryParams())
+        ;
 
         return $request;
     }
@@ -54,6 +56,60 @@ class Request extends SlimRequest
             $slimRequest->getBody(),
             $slimRequest->getUploadedFiles()
         );
+    }
+
+    /**
+     * Retrieve a specific route argument.
+     */
+    public function route(string $key, mixed $default = null): mixed
+    {
+        $routeContext = RouteContext::fromRequest($this);
+        $route = $routeContext->getRoute();
+
+        if (! $route) {
+            return $default;
+        }
+
+        return $route->getArgument($key, $default);
+    }
+
+    /**
+     * Retrieve all route arguments.
+     *
+     * @return array<string, string>
+     */
+    public function allRouteArgs(): array
+    {
+        $routeContext = RouteContext::fromRequest($this);
+        $route = $routeContext->getRoute();
+
+        return $route ? $route->getArguments() : [];
+    }
+
+    /**
+     * Get the current URL without the query string.
+     */
+    public function url(): string
+    {
+        return (string) $this->getUri()->withQuery('')->withFragment('');
+    }
+
+    /**
+     * Get the current URL including the query string.
+     */
+    public function fullUrl(): string
+    {
+        return (string) $this->getUri();
+    }
+
+    /**
+     * Get the previous URL from the Referer header.
+     */
+    public function previousUrl(string $fallback = '/'): string
+    {
+        $referer = $this->getHeaderLine('Referer');
+
+        return $referer !== '' ? $referer : $fallback;
     }
 
     /**

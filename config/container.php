@@ -10,6 +10,8 @@ use Odan\Session\SessionInterface;
 use Odan\Session\SessionManagerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Slim\App;
+use Slim\Interfaces\RouteParserInterface;
 use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 use function Rcalicdan\ConfigLoader\config;
@@ -41,6 +43,10 @@ return [
 
         ResponseFactoryInterface::class => function () {
             return new ResponseFactory();
+        },
+
+        RouteParserInterface::class => function (ContainerInterface $c) {
+            return $c->get(App::class)->getRouteCollector()->getRouteParser();
         },
 
         BladeOne::class => function () {

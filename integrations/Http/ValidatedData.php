@@ -9,7 +9,9 @@ class ValidatedData
     /**
      * @param array<string, mixed> $data
      */
-    public function __construct(private readonly array $data) {}
+    public function __construct(private readonly array $data)
+    {
+    }
 
     /**
      * Retrieve a specific validated value.
@@ -32,7 +34,7 @@ class ValidatedData
      */
     public function only(string ...$keys): array
     {
-        return \array_intersect_key($this->data, \array_flip($keys));
+        return array_intersect_key($this->data, array_flip($keys));
     }
 
     /**
@@ -40,12 +42,12 @@ class ValidatedData
      */
     public function except(string ...$keys): array
     {
-        return \array_diff_key($this->data, \array_flip($keys));
+        return array_diff_key($this->data, array_flip($keys));
     }
 
     /**
      * Get all of the validated data.
-     * 
+     *
      * @return array<string, mixed>
      */
     public function all(): array
@@ -55,7 +57,7 @@ class ValidatedData
 
     /**
      * Get all of the validated data as an array.
-     * 
+     *
      * @return array<string, mixed>
      */
     public function toArray(): array

@@ -22,6 +22,7 @@ use function Rcalicdan\ConfigLoader\config;
 abstract class TestCase extends BaseTestCase
 {
     protected App $app;
+
     protected ContainerInterface $container;
 
     protected function setUp(): void
@@ -37,11 +38,9 @@ abstract class TestCase extends BaseTestCase
         $containerBuilder->addDefinitions([
             MemorySession::class => fn () => new MemorySession(),
 
-            SessionManagerInterface::class => fn (ContainerInterface $c)
-                => $c->get(MemorySession::class),
+            SessionManagerInterface::class => fn (ContainerInterface $c) => $c->get(MemorySession::class),
 
-            SessionInterface::class => fn (ContainerInterface $c)
-                => $c->get(MemorySession::class),
+            SessionInterface::class => fn (ContainerInterface $c) => $c->get(MemorySession::class),
         ]);
 
         $this->container = $containerBuilder->build();
@@ -50,6 +49,8 @@ abstract class TestCase extends BaseTestCase
 
         $responseFactory = $this->container->get(ResponseFactoryInterface::class);
         $this->app = AppFactory::create($responseFactory);
+
+        $this->container->set(App::class, $this->app);
 
         $this->container->get(\Integrations\View\BladeRenderer::class);
 

@@ -21,12 +21,14 @@ it('response factory creates custom response objects with reason phrases', funct
 
     expect($response)->toBeInstanceOf(Response::class)
         ->and($response->getStatusCode())->toBe(201)
-        ->and($response->getReasonPhrase())->toBe('Created Successfully');
+        ->and($response->getReasonPhrase())->toBe('Created Successfully')
+    ;
 });
 
 it('api validation middleware catches validation exceptions and returns json', function () {
-    $handler = new class implements RequestHandlerInterface {
-        public function handle(ServerRequestInterface $request): ResponseInterface {
+    $handler = new class () implements RequestHandlerInterface {
+        public function handle(ServerRequestInterface $request): ResponseInterface
+        {
             throw new ValidationException(['email' => 'The email field is invalid.']);
         }
     };
@@ -37,13 +39,14 @@ it('api validation middleware catches validation exceptions and returns json', f
 
     expect($response->getStatusCode())->toBe(422)
         ->and($response->getHeaderLine('Content-Type'))->toBe('application/json')
-        ->and((string) $response->getBody())->toContain('The email field is invalid.');
+        ->and((string) $response->getBody())->toContain('The email field is invalid.')
+    ;
 });
 
-
 it('web validation middleware catches exceptions and redirects back with session data', function () {
-    $handler = new class implements RequestHandlerInterface {
-        public function handle(ServerRequestInterface $request): ResponseInterface {
+    $handler = new class () implements RequestHandlerInterface {
+        public function handle(ServerRequestInterface $request): ResponseInterface
+        {
             throw new ValidationException(['name' => 'The name is required.']);
         }
     };
@@ -54,21 +57,23 @@ it('web validation middleware catches exceptions and redirects back with session
     $response = $middleware->process($request, $handler);
 
     expect($response->getStatusCode())->toBe(302)
-        ->and($response->getHeaderLine('Location'))->toBe('/');
+        ->and($response->getHeaderLine('Location'))->toBe('/')
+    ;
 
     $session = $this->container->get(SessionInterface::class);
-    
-    expect($session->get('errors'))->toHaveKey('name')
-        ->and($session->get('old'))->toHaveKey('name', '');
-});
 
+    expect($session->get('errors'))->toHaveKey('name')
+        ->and($session->get('old'))->toHaveKey('name', '')
+    ;
+});
 
 it('csrf middleware generates a token on GET requests', function () {
     $session = $this->container->get(SessionInterface::class);
     expect($session->has('_token'))->toBeFalse();
 
-    $handler = new class implements RequestHandlerInterface {
-        public function handle(ServerRequestInterface $request): ResponseInterface {
+    $handler = new class () implements RequestHandlerInterface {
+        public function handle(ServerRequestInterface $request): ResponseInterface
+        {
             return new Response();
         }
     };
@@ -79,22 +84,24 @@ it('csrf middleware generates a token on GET requests', function () {
     $middleware->process($request, $handler);
 
     expect($session->has('_token'))->toBeTrue()
-        ->and($session->get('_token'))->not->toBeEmpty();
+        ->and($session->get('_token'))->not->toBeEmpty()
+    ;
 });
 
 it('csrf middleware blocks state changing requests with invalid tokens', function () {
     $session = $this->container->get(SessionInterface::class);
     $session->set('_token', 'valid-token');
 
-    $handler = new class implements RequestHandlerInterface {
-        public function handle(ServerRequestInterface $request): ResponseInterface {
+    $handler = new class () implements RequestHandlerInterface {
+        public function handle(ServerRequestInterface $request): ResponseInterface
+        {
             return new Response();
         }
     };
 
     $request = Request::createTestRequest('POST', '/submit');
     $request = $request->withParsedBody(['_token' => 'invalid-token']);
-    
+
     $middleware = $this->container->get(CsrfMiddleware::class);
     $response = $middleware->process($request, $handler);
 

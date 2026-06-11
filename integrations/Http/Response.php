@@ -45,4 +45,48 @@ class Response extends SlimResponse
 
         return $response;
     }
+
+    /**
+     * Return a redirect response.
+     *
+     * @param string $url The URL to redirect to.
+     * @param int $status The HTTP status code (default 302).
+     */
+    public function redirect(string $url, int $status = 302): self
+    {
+        /** @var self $response */
+        $response = $this->withStatus($status)->withHeader('Location', $url);
+
+        return $response;
+    }
+
+    /**
+     * Return a redirect response to a named route.
+     *
+     * @param string $routeName The name of the route.
+     * @param array<string, string> $data The route data parameters.
+     * @param array<string, string> $queryParams The query string parameters.
+     * @param int $status The HTTP status code (default 302).
+     */
+    public function routeRedirect(string $routeName, array $data = [], array $queryParams = [], int $status = 302): self
+    {
+        $url = route($routeName, $data, $queryParams);
+
+        return $this->redirect($url, $status);
+    }
+
+    /**
+     * Redirect the user back to their previous URL.
+     *
+     * @param string $fallback The fallback URL if no Referer is present.
+     * @param int $status The HTTP status code (default 302).
+     */
+    public function back(string $fallback = '/', int $status = 302): self
+    {
+        $container = \Integrations\Registry::get();
+        $request = $container?->get(Request::class);
+        $url = $request?->previousUrl($fallback) ?? $fallback;
+
+        return $this->redirect($url, $status);
+    }
 }
