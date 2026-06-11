@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Requests\SubmitFormRequest;
+use App\Services\GetNameService;
 use Integrations\Http\Request;
 use Integrations\Http\Response;
 
 class HomeController
 {
+    public function __construct(private readonly GetNameService $getNameService) {}
+
     public function index(Request $request, Response $response): Response
     {
-        $name = $request->query('name', 'Guest');
+        $name = $this->getNameService->getName();
 
         return $response->view('home', [
             'title' => "Slim 4 Skeleton Works, {$name}!",

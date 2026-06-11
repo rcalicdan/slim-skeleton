@@ -33,7 +33,8 @@ class Request extends SlimRequest
         /** @var self $request */
         $request = $request
             ->withParsedBody($slimRequest->getParsedBody())
-            ->withQueryParams($slimRequest->getQueryParams());
+            ->withQueryParams($slimRequest->getQueryParams())
+        ;
 
         return $request;
     }
@@ -76,6 +77,7 @@ class Request extends SlimRequest
     public function has(string $key): bool
     {
         $data = (array) ($this->getParsedBody() ?? $this->getQueryParams());
+
         return \array_key_exists($key, $data);
     }
 
@@ -85,6 +87,7 @@ class Request extends SlimRequest
     public function filled(string $key): bool
     {
         $value = $this->input($key);
+
         return $value !== null && $value !== '';
     }
 
