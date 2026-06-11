@@ -7,6 +7,7 @@ use Integrations\Http\ResponseFactory;
 use Integrations\View\BladeRenderer;
 use Integrations\View\Directives\EndErrorDirective;
 use Integrations\View\Directives\ErrorDirective;
+use Integrations\View\Directives\MethodDirective;
 use Integrations\View\Directives\UpperDirective;
 use Odan\Session\PhpSession;
 use Odan\Session\SessionInterface;
