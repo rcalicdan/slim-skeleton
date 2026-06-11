@@ -9,9 +9,7 @@ use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 abstract class FormRequest
 {
-    public function __construct(protected readonly Request $request)
-    {
-    }
+    public function __construct(protected readonly Request $request) {}
 
     abstract public function rules(): array;
 
