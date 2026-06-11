@@ -8,6 +8,9 @@ use DI\ContainerBuilder;
 use Integrations\Http\Request;
 use Integrations\Http\Response;
 use Integrations\Registry;
+use Odan\Session\MemorySession;
+use Odan\Session\SessionInterface;
+use Odan\Session\SessionManagerInterface;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -21,9 +24,6 @@ abstract class TestCase extends BaseTestCase
     protected App $app;
     protected ContainerInterface $container;
 
-    /**
-     * Boot the framework before every test.
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -33,6 +33,16 @@ abstract class TestCase extends BaseTestCase
         $containerBuilder->useAutowiring(config('container.settings.autowire', true));
         $containerBuilder->useAttributes(config('container.settings.use_attributes', true));
         $containerBuilder->addDefinitions(config('container.dependency_map', []));
+
+        $containerBuilder->addDefinitions([
+            MemorySession::class => fn () => new MemorySession(),
+
+            SessionManagerInterface::class => fn (ContainerInterface $c)
+                => $c->get(MemorySession::class),
+
+            SessionInterface::class => fn (ContainerInterface $c)
+                => $c->get(MemorySession::class),
+        ]);
 
         $this->container = $containerBuilder->build();
         Registry::set($this->container);
@@ -54,7 +64,7 @@ abstract class TestCase extends BaseTestCase
     {
         $request = Request::createTestRequest($method, $path);
 
-        if (!empty($data)) {
+        if (! empty($data)) {
             $request = $request->withParsedBody($data);
         }
 
@@ -77,7 +87,7 @@ abstract class TestCase extends BaseTestCase
      */
     protected function post(string $path, array $data = []): Response
     {
-        $session = $this->container->get(\Odan\Session\SessionInterface::class);
+        $session = $this->container->get(SessionInterface::class);
         $session->set('_token', 'test-token');
         $data['_token'] = 'test-token';
 

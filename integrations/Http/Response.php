@@ -11,9 +11,10 @@ class Response extends SlimResponse
     /**
      * Return a JSON encoded response.
      */
-    public function json(mixed $data, int $status = 200): self
+    public function json(mixed $data, int $status = 0): self
     {
-        $response = $this->withStatus($status)->withHeader('Content-Type', 'application/json');
+        $statusCode = $status > 0 ? $status : $this->getStatusCode();
+        $response = $this->withStatus($statusCode)->withHeader('Content-Type', 'application/json');
         $response->getBody()->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR));
 
         return $response;
