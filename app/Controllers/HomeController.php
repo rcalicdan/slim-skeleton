@@ -11,7 +11,9 @@ use Integrations\Http\Response;
 
 class HomeController
 {
-    public function __construct(private readonly GetNameService $getNameService) {}
+    public function __construct(private readonly GetNameService $getNameService)
+    {
+    }
 
     public function index(Request $request, Response $response): Response
     {

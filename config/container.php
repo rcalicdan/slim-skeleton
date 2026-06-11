@@ -10,6 +10,7 @@ use Odan\Session\SessionInterface;
 use Odan\Session\SessionManagerInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
+use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 use function Rcalicdan\ConfigLoader\config;
 use function Rcalicdan\ConfigLoader\env;
@@ -59,6 +60,19 @@ return [
             BladeRenderer::init($renderer);
 
             return $renderer;
+        },
+
+        ValidationFactory::class => function (ContainerInterface $c) {
+            $factory = new ValidationFactory();
+
+            /** @var array<string, class-string> $customRules */
+            $customRules = config('validation.rules', []);
+
+            foreach ($customRules as $name => $class) {
+                $factory->addRule($name, $c->get($class));
+            }
+
+            return $factory;
         },
     ],
 ];

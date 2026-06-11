@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Integrations\Http;
 
 use Integrations\Http\Exceptions\ValidationException;
+use Integrations\Registry;
 use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
 abstract class FormRequest
 {
-    public function __construct(protected readonly Request $request) {}
+    public function __construct(protected readonly Request $request)
+    {
+    }
 
     /**
      * @return array<string, string|array<mixed>>
@@ -34,6 +37,7 @@ abstract class FormRequest
 
     /**
      * @param array<string, mixed> $data
+     *
      * @return array<string, mixed>
      */
     public function prepareForValidation(array $data): array
@@ -43,7 +47,9 @@ abstract class FormRequest
 
     /**
      * @param array<string, mixed> $validated
+     *
      * @return array<string, mixed>
+     *
      * @throws ValidationException
      */
     public function after(array $validated): array
@@ -53,21 +59,24 @@ abstract class FormRequest
 
     /**
      * @return array<string, mixed>
+     *
      * @throws ValidationException
      */
     public function validate(): array
     {
-        $factory = new ValidationFactory();
-        $raw     = (array) ($this->request->getParsedBody() ?? $this->request->getQueryParams());
+        /** @var ValidationFactory $factory */
+        $factory = Registry::get()->get(ValidationFactory::class);
 
-        $data       = $this->prepareForValidation($raw);
+        $raw = (array) ($this->request->getParsedBody() ?? $this->request->getQueryParams());
+
+        $data = $this->prepareForValidation($raw);
         $validation = $factory->make($data, $this->rules());
 
         foreach ($this->attributes() as $field => $alias) {
             $validation->setAlias($field, $alias);
         }
 
-        if (!empty($this->messages())) {
+        if (! empty($this->messages())) {
             $validation->messages()->add('en', $this->messages());
         }
 

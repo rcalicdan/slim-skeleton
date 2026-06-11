@@ -16,7 +16,7 @@ class SubmitFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => 'required|min:3',
+            'name' => 'required|min:3|allowed_username',
             'email' => 'required|email',
         ];
     }
@@ -24,7 +24,7 @@ class SubmitFormRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name'  => 'Full Name ' . $this->getNameService->getName(),
+            'name' => 'Full Name ' . $this->getNameService->getName(),
             'email' => 'Email Address',
         ];
     }

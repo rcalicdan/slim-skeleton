@@ -33,8 +33,7 @@ class Request extends SlimRequest
         /** @var self $request */
         $request = $request
             ->withParsedBody($slimRequest->getParsedBody())
-            ->withQueryParams($slimRequest->getQueryParams())
-        ;
+            ->withQueryParams($slimRequest->getQueryParams());
 
         return $request;
     }
@@ -132,8 +131,10 @@ class Request extends SlimRequest
             return $formRequest->validate();
         }
 
-        $factory = new ValidationFactory();
+        /** @var ValidationFactory $factory */
+        $factory = Registry::get()->get(ValidationFactory::class);
         $data = $this->getParsedBody() ?? $this->getQueryParams();
+
         $validation = $factory->make((array) $data, $rules);
         $validation->validate();
 
