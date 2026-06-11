@@ -75,7 +75,10 @@ class Request extends SlimRequest
      */
     public function has(string $key): bool
     {
-        $data = (array) ($this->getParsedBody() ?? $this->getQueryParams());
+        $body = (array) ($this->getParsedBody() ?? []);
+        $query = $this->getQueryParams();
+
+        $data = [...$query, ...$body];
 
         return \array_key_exists($key, $data);
     }
