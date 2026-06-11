@@ -41,11 +41,13 @@ abstract class TestCase extends BaseTestCase
         $responseFactory = $this->container->get(ResponseFactoryInterface::class);
         $this->app = AppFactory::create($responseFactory);
 
-        require __DIR__ . '/../config/middleware.php'($this->app);
-        require __DIR__ . '/../config/routes.php'($this->app);
+        $this->container->get(\Integrations\View\BladeRenderer::class);
+
+        (require __DIR__ . '/../config/middleware.php')($this->app);
+        (require __DIR__ . '/../config/routes.php')($this->app);
     }
 
-  /**
+    /**
      * Simulate an HTTP Request to the Slim application.
      */
     protected function request(string $method, string $path, array $data = []): Response
