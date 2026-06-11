@@ -2,29 +2,9 @@
 
 declare(strict_types=1);
 
-use Integrations\Http\FormRequest;
 use Integrations\Http\Request;
 use Integrations\Http\Response;
-
-class AdvancedTestRequest extends FormRequest
-{
-    public function rules(): array
-    {
-        $rules = [
-            'name' => 'required|string',
-        ];
-
-        if ($this->getMethod() === 'POST' && $this->route('id') !== null) {
-            $rules['id'] = 'required|integer';
-        }
-
-        if ($this->filled('company')) {
-            $rules['tax_id'] = 'required|string';
-        }
-
-        return $rules;
-    }
-}
+use Tests\FrameworkIntegration\Fixtures\FormRequest\AdvancedTestRequest;
 
 it('has working pass-through methods to build conditional rules', function () {
     $this->app->post('/users/{id}/advanced', function (Request $request, Response $response) {

@@ -7,7 +7,7 @@ return [
      * -------------------------------------------------------------------------
      * Custom Validation Rules
      * -------------------------------------------------------------------------
-     * Here you may define custom validation rules. The array key is the
+     * Here you may define custom validation rules as strings. The array key is the
      * string name used in your validation arrays (e.g., 'allowed_username'),
      * and the value is the fully qualified class name of the Rule.
      *
