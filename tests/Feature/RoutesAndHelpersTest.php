@@ -61,9 +61,9 @@ it('provides accurate current and previous urls via global helpers', function ()
 });
 
 it('generates the correct html for form method spoofing', function () {
-    expect(method_field('PUT'))->toBe('<input type="hidden" name="_method" value="PUT"/>')
-        ->and(method_field('patch'))->toBe('<input type="hidden" name="_method" value="PATCH"/>')
-        ->and(method_field('delete'))->toBe('<input type="hidden" name="_method" value="DELETE"/>');
+    expect(method_field('PUT'))->toBe('<input type="hidden" name="_METHOD" value="PUT"/>')
+        ->and(method_field('patch'))->toBe('<input type="hidden" name="_METHOD" value="PATCH"/>')
+        ->and(method_field('delete'))->toBe('<input type="hidden" name="_METHOD" value="DELETE"/>');
 });
 
 it('intercepts and routes spoofed PUT requests via standard POST payload', function () {
@@ -75,7 +75,7 @@ it('intercepts and routes spoofed PUT requests via standard POST payload', funct
     });
 
     $response = $this->post('/users/15', [
-        '_method' => 'PUT',
+        '_METHOD' => 'PUT',
         'name' => 'Alice'
     ]);
 
@@ -95,7 +95,7 @@ it('intercepts and routes spoofed DELETE requests via standard POST payload', fu
     });
 
     $response = $this->post('/users/22', [
-        '_method' => 'DELETE'
+        '_METHOD' => 'DELETE'
     ]);
 
     $data = json_decode((string) $response->getBody(), true);

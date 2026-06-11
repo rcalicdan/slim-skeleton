@@ -197,7 +197,7 @@ if (! function_exists('method_field')) {
     {
         $cleanedMethod = strtoupper(trim($method, "'\" "));
 
-        return '<input type="hidden" name="_method" value="' . $cleanedMethod . '"/>';
+        return '<input type="hidden" name="_METHOD" value="' . $cleanedMethod . '"/>';
     }
 }
 
