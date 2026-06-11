@@ -2,6 +2,7 @@
     "name": "rcalicdan/slim-skeleton",
     "description": "Slim 4 skeleton with PHP-DI, Blade, and Pest",
     "type": "project",
+    "license": "MIT",
     "require": {
         "php": "^8.4",
         "slim/slim": "4.*",
