@@ -32,8 +32,7 @@ class Request extends SlimRequest
         /** @var self $request */
         $request = $request
             ->withParsedBody($slimRequest->getParsedBody())
-            ->withQueryParams($slimRequest->getQueryParams())
-        ;
+            ->withQueryParams($slimRequest->getQueryParams());
 
         return $request;
     }
@@ -68,6 +67,24 @@ class Request extends SlimRequest
         }
 
         return $this->query($key, $default);
+    }
+
+    /**
+     * Check if a parameter exists in the parsed body (POST/JSON) or query string (GET).
+     */
+    public function has(string $key): bool
+    {
+        $data = (array) ($this->getParsedBody() ?? $this->getQueryParams());
+        return \array_key_exists($key, $data);
+    }
+
+    /**
+     * Check if a parameter exists in the parsed body (POST/JSON) or query string (GET) and is not empty.
+     */
+    public function filled(string $key): bool
+    {
+        $value = $this->input($key);
+        return $value !== null && $value !== '';
     }
 
     /**
