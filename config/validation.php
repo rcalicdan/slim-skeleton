@@ -17,6 +17,6 @@ return [
      * dependencies (like Database connections) into your Rule constructors!
      */
     'rules' => [
-        'allowed_username' => AllowedUsernameRule::class,
+        // 'allowed_username' => AllowedUsernameRule::class,
     ],
 ];
