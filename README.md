@@ -119,6 +119,7 @@ slim-skeleton/
 │   │   ├── Directives/
 │   │   │   ├── EndErrorDirective.php
 │   │   │   ├── ErrorDirective.php
+│   │   │   ├── MethodDirective.php
 │   │   │   └── UpperDirective.php
 │   │   └── BladeRenderer.php
 │   ├── functions.php         # Global helpers (autoloaded)
@@ -564,17 +565,9 @@ class StoreUserRequest extends FormRequest
 **Using a FormRequest in a controller:**
 
 ```php
-// Option A: pass the class-string to $request->validate()
 public function store(Request $request, Response $response): Response
 {
     $validated = $request->validate(StoreUserRequest::class);
-    return $response->json($validated->all());
-}
-
-// Option B: type-hint it directly; PHP-DI autowires and injects it
-public function store(StoreUserRequest $form, Response $response): Response
-{
-    $validated = $form->validate();
     return $response->json($validated->all());
 }
 ```
