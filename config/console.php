@@ -13,5 +13,6 @@ return [
      */
     'commands' => [
         Integrations\Commands\ClearCacheCommand::class,
+        Integrations\Commands\GenerateKeyCommand::class,
     ],
 ];
