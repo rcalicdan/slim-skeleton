@@ -11,17 +11,23 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+use function Rcalicdan\ConfigLoader\config;
+
 class AuthMiddleware implements MiddlewareInterface
 {
-    public function __construct(private readonly ResponseFactory $responseFactory) {}
+    public function __construct(private readonly ResponseFactory $responseFactory)
+    {
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (Auth::guest()) {
             session()->getFlash()->add('error', 'You must be logged in to access this page.');
 
+            $redirectPath = (string) config('auth.redirects.guest', '/login');
+
             return $this->responseFactory->createResponse(302)
-                ->withHeader('Location', '/login');
+                ->withHeader('Location', $redirectPath);
         }
 
         return $handler->handle($request);

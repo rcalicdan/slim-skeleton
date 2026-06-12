@@ -11,6 +11,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+use function Rcalicdan\ConfigLoader\config;
+
 class GuestMiddleware implements MiddlewareInterface
 {
     public function __construct(private readonly ResponseFactory $responseFactory) {}
@@ -18,8 +20,10 @@ class GuestMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (Auth::check()) {
+            $redirectPath = (string) config('auth.redirects.auth', '/');
+
             return $this->responseFactory->createResponse(302)
-                ->withHeader('Location', '/');
+                ->withHeader('Location', $redirectPath);
         }
 
         return $handler->handle($request);
