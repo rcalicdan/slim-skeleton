@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use DI\ContainerBuilder;
+use Integrations\Registry;
+use Symfony\Component\Console\Application;
+
+use function Rcalicdan\ConfigLoader\config;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$containerBuilder = new ContainerBuilder();
+
+$containerBuilder->useAutowiring(config('container.settings.autowire', true));
+$containerBuilder->useAttributes(config('container.settings.use_attributes', true));
+
+$cachePath = config('container.settings.cache_path');
+
+if (! empty($cachePath)) {
+    $containerBuilder->enableCompilation($cachePath);
+}
+
+$containerBuilder->addDefinitions(config('container.dependency_map', []));
+
+$container = $containerBuilder->build();
+Registry::set($container);
+
+$cli = new Application('Slim Skeleton Console', '1.0.0');
+
+foreach (config('console.commands', []) as $commandClass) {
+    $cli->addCommand($container->get($commandClass));
+}
+
+$cli->run();

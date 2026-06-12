@@ -17,11 +17,15 @@ Whether you're building a traditional web app, an API, or something in between, 
   - [Bootstrap Flow](#bootstrap-flow)
   - [Middleware Execution Order](#middleware-execution-order)
   - [DI Container and Registry](#di-container-and-registry)
+- [Console CLI (Command Line Interface)](#console-cli-command-line-interface)
+  - [Built-in Commands](#built-in-commands)
+  - [Creating Custom Commands](#creating-custom-commands)
 - [Configuration](#configuration)
   - [container.php](#containerphp)
   - [middleware.php](#middlewarephp)
   - [routes.php](#routesphp)
   - [blade.php](#bladephp)
+  - [console.php](#consolephp)
   - [validation.php](#validationphp)
 - [HTTP Layer](#http-layer)
   - [Request](#request)
@@ -60,6 +64,7 @@ Whether you're building a traditional web app, an API, or something in between, 
 | `slim/psr7` | PSR-7 HTTP message implementation |
 | `php-di/php-di` ^7 | DI container with autowiring |
 | `eftec/bladeone` | Blade-compatible template engine |
+| `symfony/console` ^7.1 | CLI engine |
 | `rcalicdan/config-loader` | `config()` and `env()` helpers |
 | `odan/session` | PSR-15 session management |
 | `somnambulist/validation` | Validation factory and rules |
@@ -97,11 +102,14 @@ slim-skeleton/
 │   └── Controllers/          # Your application controllers (or handlers, actions, etc.)
 ├── config/
 │   ├── blade.php             # Template paths, cache mode, custom directives
+│   ├── console.php           # Console command bindings
 │   ├── container.php         # DI bindings and settings
 │   ├── middleware.php        # Global middleware registration
 │   ├── routes.php            # Route definitions
 │   └── validation.php        # Custom validation rule bindings
 ├── integrations/             # The framework integration layer; generally leave this alone
+│   ├── Commands/
+│   │   └── ClearCacheCommand.php
 │   ├── Http/
 │   │   ├── Exceptions/
 │   │   │   └── ValidationException.php
@@ -131,6 +139,7 @@ slim-skeleton/
 │   ├── FrameworkIntegration/ # Skeleton's own integration tests; delete when starting your project
 │   ├── Pest.php
 │   └── TestCase.php          # Base test case with HTTP helpers; keep this
+├── slim                      # CLI Application Runner
 └── .env
 ```
 
@@ -326,6 +335,65 @@ Controllers, `FormRequest` subclasses, and single-action handlers are **autowire
 
 ---
 
+## Console CLI (Command Line Interface)
+
+The skeleton integrates Symfony Console (`symfony/console`) to allow running CLI commands. It uses the `slim` file in the project's root folder as the application runner.
+
+To run the console, execute it from the root directory:
+
+```bash
+# Set execute permissions (Unix/macOS)
+chmod +x slim
+
+# Run the console
+php slim
+```
+
+### Built-in Commands
+
+The skeleton provides a default command to clear accumulated caches:
+
+```bash
+php slim cache:clear
+```
+
+This command flushes compiled templates in `cache/blade` and compiled DI container files in `var/cache/di`.
+
+### Creating Custom Commands
+
+To create a custom command, extend `Symfony\Component\Console\Command\Command` and define your command's name, description, options, and arguments within the `configure()` method:
+
+```php
+namespace App\Console\Commands;
+
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+
+class ExampleCommand extends Command
+{
+    protected function configure(): void
+    {
+        $this
+            ->setName('example:run')
+            ->setDescription('An example command description');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $io->success('Command executed successfully!');
+
+        return Command::SUCCESS;
+    }
+}
+```
+
+After creating your command class, register it in `config/console.php` to make it accessible to the runner. Because these commands are resolved through the DI container, they support constructor autowiring.
+
+---
+
 ## Configuration
 
 All config files return a plain PHP array (or a callable for middleware/routes), accessed via the `config('file.key')` helper.
@@ -393,6 +461,20 @@ return function (App $app): void {
 | `mode` | `MODE_AUTO` (local) / `MODE_FAST` (production) |
 | `directives` | Compile-time directives as `['name' => callable\|class-string]` |
 | `directives_rt` | Run-time directives as `['name' => callable\|class-string]` |
+
+---
+
+### console.php
+
+Register all custom CLI commands resolved via the DI Container.
+
+```php
+return [
+    'commands' => [
+        \Integrations\Commands\ClearCacheCommand::class,
+    ],
+];
+```
 
 ---
 
@@ -565,9 +647,17 @@ class StoreUserRequest extends FormRequest
 **Using a FormRequest in a controller:**
 
 ```php
+// Option A: pass the class-string to $request->validate()
 public function store(Request $request, Response $response): Response
 {
     $validated = $request->validate(StoreUserRequest::class);
+    return $response->json($validated->all());
+}
+
+// Option B: type-hint it directly; PHP-DI autowires and injects it
+public function store(StoreUserRequest $form, Response $response): Response
+{
+    $validated = $form->validate();
     return $response->json($validated->all());
 }
 ```
@@ -1169,5 +1259,3 @@ it('routes spoofed PUT requests correctly', function () {
         ->and($data['id'])->toBe('5');
 });
 ```
-
-> `$this->container` is typed as `DI\Container`, so you can call `$this->container->set()` to override bindings mid-test for mocking.
