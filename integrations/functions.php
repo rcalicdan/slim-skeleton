@@ -8,6 +8,8 @@ use Odan\Session\SessionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Interfaces\RouteParserInterface;
 
+use function Rcalicdan\ConfigLoader\env;
+
 if (! function_exists('blade_view')) {
     /**
      * Render a Blade template.
@@ -198,5 +200,22 @@ if (! function_exists('method_field')) {
         $cleanedMethod = strtoupper(trim($method, "'\" "));
 
         return '<input type="hidden" name="_METHOD" value="' . $cleanedMethod . '"/>';
+    }
+}
+
+if (! function_exists('bcrypt')) {
+    /**
+     * Hash the given value using the bcrypt algorithm.
+     *
+     * @param string $value The value to hash.
+     * @param int|null $rounds The cost/rounds factor (null to use default).
+     *
+     * @return string The hashed value.
+     */
+    function bcrypt(string $value, ?int $rounds = null): string
+    {
+        $cost = $rounds ?? (int) env('BCRYPT_ROUNDS', 12);
+
+        return password_hash($value, PASSWORD_BCRYPT, ['cost' => $cost]);
     }
 }

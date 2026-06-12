@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use eftec\bladeone\BladeOne;
+use Hibla\QueryBuilder\DB;
+use Hibla\QueryBuilder\Interfaces\DatabaseConnectionInterface;
 use Integrations\Http\ResponseFactory;
 use Integrations\View\BladeRenderer;
 use Integrations\View\Directives\EndErrorDirective;
@@ -107,6 +109,10 @@ return [
             }
 
             return $factory;
+        },
+
+        DatabaseConnectionInterface::class => function () {
+            return DB::connection();
         },
     ],
 ];

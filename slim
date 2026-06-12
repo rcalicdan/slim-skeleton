@@ -4,8 +4,20 @@
 declare(strict_types=1);
 
 use DI\ContainerBuilder;
-use Integrations\Registry;
+use Hibla\SchemaManager\Console\DbSeedCommand;
 use Symfony\Component\Console\Application;
+use Hibla\SchemaManager\Console\PublishTemplatesCommand;
+use Hibla\SchemaManager\Console\MakeMigrationCommand;
+use Hibla\SchemaManager\Console\MakeSeederCommand;
+use Hibla\SchemaManager\Console\MigrateCommand;
+use Hibla\SchemaManager\Console\MigrateRollbackCommand;
+use Hibla\SchemaManager\Console\MigrateResetCommand;
+use Hibla\SchemaManager\Console\MigrateRefreshCommand;
+use Hibla\SchemaManager\Console\MigrateFreshCommand;
+use Hibla\SchemaManager\Console\MigrateStatusCommand;
+use Hibla\SchemaManager\Console\SchemaDumpCommand;
+use Hibla\SchemaManager\Console\StatusCommand;
+use Integrations\Registry;
 
 use function Rcalicdan\ConfigLoader\config;
 
@@ -32,5 +44,18 @@ $cli = new Application('Slim Skeleton Console', '1.0.0');
 foreach (config('console.commands', []) as $commandClass) {
     $cli->addCommand($container->get($commandClass));
 }
+
+$cli->addCommand(new PublishTemplatesCommand());
+$cli->addCommand(new MakeMigrationCommand());
+$cli->addCommand(new MakeSeederCommand());
+$cli->addCommand(new DbSeedCommand());
+$cli->addCommand(new MigrateCommand());
+$cli->addCommand(new MigrateRollbackCommand());
+$cli->addCommand(new MigrateResetCommand());
+$cli->addCommand(new MigrateRefreshCommand());
+$cli->addCommand(new MigrateFreshCommand());
+$cli->addCommand(new MigrateStatusCommand());
+$cli->addCommand(new SchemaDumpCommand());
+$cli->addCommand(new StatusCommand());
 
 $cli->run();
