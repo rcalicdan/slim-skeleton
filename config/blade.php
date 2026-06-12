@@ -55,7 +55,18 @@ return [
      * Usage in template: @money(1500.5)
      */
     'directives' => [
-        //
+        'auth' => function () {
+            return '<?php if (\Integrations\Auth::check()): ?>';
+        },
+        'endauth' => function () {
+            return '<?php endif; ?>';
+        },
+        'guest' => function () {
+            return '<?php if (\Integrations\Auth::guest()): ?>';
+        },
+        'endguest' => function () {
+            return '<?php endif; ?>';
+        },
     ],
 
     /**
