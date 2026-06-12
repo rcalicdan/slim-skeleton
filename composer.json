@@ -3,6 +3,8 @@
     "description": "Slim 4 skeleton with PHP-DI, Blade, and Pest",
     "type": "project",
     "license": "MIT",
+    "minimum-stability": "beta",
+    "prefer-stable": true,
     "require": {
         "php": "^8.4",
         "slim/slim": "4.*",
@@ -12,7 +14,8 @@
         "rcalicdan/config-loader": "^1.2",
         "odan/session": "^6.5",
         "somnambulist/validation": "^1.13",
-        "symfony/console": "^8.0"
+        "symfony/console": "^8.0",
+        "hiblaphp/database":"^1.0"
     },
     "require-dev": {
         "pestphp/pest": "^4.0",
