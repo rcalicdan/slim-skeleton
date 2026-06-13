@@ -43,7 +43,7 @@ class Crypt
         $serialized = serialize($value);
         $ivLength = openssl_cipher_iv_length(self::CIPHER);
         $iv = random_bytes($ivLength);
-        
+
         $ciphertext = openssl_encrypt(
             $serialized,
             self::CIPHER,
@@ -67,7 +67,7 @@ class Crypt
     {
         $decoded = base64_decode($payload);
         $ivLength = openssl_cipher_iv_length(self::CIPHER);
-        $tagLength = 16; 
+        $tagLength = 16;
 
         if (\strlen($decoded) < $ivLength + $tagLength) {
             return null;

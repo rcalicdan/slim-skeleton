@@ -6,6 +6,7 @@ use eftec\bladeone\BladeOne;
 use Hibla\QueryBuilder\DB;
 use Hibla\QueryBuilder\Interfaces\DatabaseConnectionInterface;
 use Integrations\Http\ResponseFactory;
+use Integrations\Session\DatabaseSessionHandler;
 use Integrations\View\BladeRenderer;
 use Integrations\View\Directives\EndErrorDirective;
 use Integrations\View\Directives\ErrorDirective;
@@ -33,10 +34,24 @@ return [
     ],
 
     'dependency_map' => [
-        PhpSession::class => function () {
+        PhpSession::class => function (ContainerInterface $c) {
+            $driver = config('session.driver', 'php');
+            $lifetime = (int) config('session.lifetime', 7200);
+
+            if ($driver === 'database') {
+                $handler = $c->get(DatabaseSessionHandler::class);
+                session_set_save_handler($handler, true);
+            }
+
             return new PhpSession([
-                'name' => 'app_session',
-                'cache_expire' => 0,
+                'name' => config('session.name', 'app_session'),
+                'cookie_lifetime' => $lifetime,
+                'gc_maxlifetime' => $lifetime,
+                'cookie_path' => (string) config('session.path', '/'),
+                'cookie_domain' => (string) config('session.domain'),
+                'cookie_secure' => (bool) config('session.secure', false),
+                'cookie_httponly' => (bool) config('session.httponly', true),
+                'cookie_samesite' => (string) config('session.samesite', 'Lax'),
             ]);
         },
 

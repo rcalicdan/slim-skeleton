@@ -21,5 +21,5 @@ class ResponseFactory implements ResponseFactoryInterface
         }
 
         return $response;
-    }
+    }   
 }

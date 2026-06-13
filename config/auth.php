@@ -10,7 +10,7 @@ return [
     | Database Table & Keys
     |--------------------------------------------------------------------------
     |
-    | This option defines the database table and primary key used to fetch 
+    | This option defines the database table and primary key used to fetch
     | your authenticated users.
     |
     */
@@ -42,7 +42,7 @@ return [
     | Redirect Paths
     |--------------------------------------------------------------------------
     |
-    | Configure the default redirect paths used by the authentication 
+    | Configure the default redirect paths used by the authentication
     | middlewares.
     |
     */

@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 use Hibla\SchemaManager\Schema\Blueprint;
 use Hibla\SchemaManager\Schema\Migration;
 
 use function Hibla\await;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migration.
      */

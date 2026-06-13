@@ -27,7 +27,8 @@ class AuthMiddleware implements MiddlewareInterface
             $redirectPath = (string) config('auth.redirects.guest', '/login');
 
             return $this->responseFactory->createResponse(302)
-                ->withHeader('Location', $redirectPath);
+                ->withHeader('Location', $redirectPath)
+            ;
         }
 
         return $handler->handle($request);

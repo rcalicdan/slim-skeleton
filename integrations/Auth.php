@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Integrations;
 
-use Hibla\QueryBuilder\DB;
 use Hibla\Promise\Interfaces\PromiseInterface;
 use Hibla\Promise\Promise;
+use Hibla\QueryBuilder\DB;
 
 use function Rcalicdan\ConfigLoader\config;
 

@@ -49,7 +49,7 @@ class GenerateKeyCommand extends Command
             return Command::FAILURE;
         }
 
-        $pattern = "/^APP_KEY=(.*)$/m";
+        $pattern = '/^APP_KEY=(.*)$/m';
 
         if (preg_match($pattern, $envContent, $matches)) {
             $existingKey = trim($matches[1]);

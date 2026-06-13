@@ -15,7 +15,9 @@ use function Rcalicdan\ConfigLoader\config;
 
 class GuestMiddleware implements MiddlewareInterface
 {
-    public function __construct(private readonly ResponseFactory $responseFactory) {}
+    public function __construct(private readonly ResponseFactory $responseFactory)
+    {
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -23,7 +25,8 @@ class GuestMiddleware implements MiddlewareInterface
             $redirectPath = (string) config('auth.redirects.auth', '/');
 
             return $this->responseFactory->createResponse(302)
-                ->withHeader('Location', $redirectPath);
+                ->withHeader('Location', $redirectPath)
+            ;
         }
 
         return $handler->handle($request);

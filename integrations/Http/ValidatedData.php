@@ -31,7 +31,7 @@ class ValidatedData
 
     /**
      * Get a subset of the validated data.
-     * 
+     *
      * @return array<string, mixed>
      */
     public function only(string ...$keys): array
@@ -41,7 +41,7 @@ class ValidatedData
 
     /**
      * Get all validated data except for a specified array of keys.
-     * 
+     *
      * @return array<string, mixed>
      */
     public function except(string ...$keys): array
