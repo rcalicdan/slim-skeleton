@@ -3,7 +3,7 @@
 A minimal, opinionated PHP micro-framework skeleton built on Slim 4.
 Wraps Slim's raw PSR-7 primitives with a Laravel-inspired developer experience, without pulling in the full Laravel ecosystem.
 
-Whether you're building a traditional web app, an API, or something in between, this skeleton gives you a solid, testable foundation you can shape into any architecture you prefer.
+Whether you're building a traditional web app, an API, or something in between, this skeleton gives you a solid, testable, and fully statically-analyzable foundation.
 
 ---
 
@@ -27,6 +27,14 @@ Whether you're building a traditional web app, an API, or something in between, 
   - [blade.php](#bladephp)
   - [console.php](#consolephp)
   - [validation.php](#validationphp)
+  - [session.php](#sessionphp)
+  - [auth.php](#authphp)
+- [Database \& Hibla Integration](#database--hibla-integration)
+  - [Using the Facade](#using-the-facade)
+  - [Dependency Injection \& Multi-Connection](#dependency-injection--multi-connection)
+- [Authentication \& Security](#authentication--security)
+  - [Crypt & Key Generation](#crypt--key-generation)
+  - [The Auth Facade](#the-auth-facade)
 - [HTTP Layer](#http-layer)
   - [Request](#request)
   - [Response](#response)
@@ -42,12 +50,15 @@ Whether you're building a traditional web app, an API, or something in between, 
   - [Built-in Directives](#built-in-directives)
   - [Custom Compile-time Directives](#custom-compile-time-directives)
   - [Custom Run-time Directives](#custom-run-time-directives)
+- [Error Handling](#error-handling)
 - [Global Helper Functions](#global-helper-functions)
 - [Middleware Reference](#middleware-reference)
   - [BindRequestMiddleware](#bindrequestmiddleware)
   - [CsrfMiddleware](#csrfmiddleware)
   - [WebValidationMiddleware](#webvalidationmiddleware)
   - [ApiValidationMiddleware](#apivalidationmiddleware)
+  - [RateLimitMiddleware](#ratelimitmiddleware)
+  - [AuthMiddleware & GuestMiddleware](#authmiddleware--guestmiddleware)
 - [Session](#session)
 - [Testing](#testing)
   - [Before You Start: Clean Up the Skeleton Tests](#before-you-start-clean-up-the-skeleton-tests)
@@ -64,6 +75,7 @@ Whether you're building a traditional web app, an API, or something in between, 
 | `slim/psr7` | PSR-7 HTTP message implementation |
 | `php-di/php-di` ^7 | DI container with autowiring |
 | `eftec/bladeone` | Blade-compatible template engine |
+| `hiblaphp/database` | Fully asynchronous, Fiber-based database layer |
 | `symfony/console` ^7.1 | CLI engine |
 | `rcalicdan/config-loader` | `config()` and `env()` helpers |
 | `odan/session` | PSR-15 session management |
@@ -80,6 +92,10 @@ Whether you're building a traditional web app, an API, or something in between, 
 composer create-project rcalicdan/slim-skeleton my-app
 cd my-app
 cp .env.example .env
+
+# Generate your secure application encryption key
+php slim key:generate
+
 php -S localhost:8000 -t public
 ```
 
@@ -101,42 +117,61 @@ slim-skeleton/
 ├── app/
 │   └── Controllers/          # Your application controllers (or handlers, actions, etc.)
 ├── config/
+│   ├── auth.php              # Auth redirects, table names, and bcrypt rounds
 │   ├── blade.php             # Template paths, cache mode, custom directives
 │   ├── console.php           # Console command bindings
 │   ├── container.php         # DI bindings and settings
+│   ├── hibla-database.php    # Database connection pool configurations
+│   ├── hibla-migrations.php  # Schema migration configurations
+│   ├── hibla-seeders.php     # Schema seeder configurations
 │   ├── middleware.php        # Global middleware registration
 │   ├── routes.php            # Route definitions
+│   ├── session.php           # Session drivers, lifetimes, and cookie security
 │   └── validation.php        # Custom validation rule bindings
 ├── integrations/             # The framework integration layer; generally leave this alone
 │   ├── Commands/
-│   │   └── ClearCacheCommand.php
+│   │   ├── ClearCacheCommand.php
+│   │   └── GenerateKeyCommand.php
 │   ├── Http/
 │   │   ├── Exceptions/
 │   │   │   └── ValidationException.php
+│   │   ├── Handlers/
+│   │   │   └── HttpErrorHandler.php
 │   │   ├── Middleware/
 │   │   │   ├── ApiValidationMiddleware.php
+│   │   │   ├── AuthMiddleware.php
 │   │   │   ├── BindRequestMiddleware.php
 │   │   │   ├── CsrfMiddleware.php
+│   │   │   ├── GuestMiddleware.php
+│   │   │   ├── RateLimitMiddleware.php
 │   │   │   └── WebValidationMiddleware.php
 │   │   ├── FormRequest.php
 │   │   ├── Request.php
 │   │   ├── Response.php
 │   │   ├── ResponseFactory.php
 │   │   └── ValidatedData.php
+│   ├── Session/
+│   │   └── DatabaseSessionHandler.php
 │   ├── View/
 │   │   ├── Directives/
 │   │   │   ├── EndErrorDirective.php
+│   │   │   ├── EndSessionDirective.php
 │   │   │   ├── ErrorDirective.php
 │   │   │   ├── MethodDirective.php
+│   │   │   ├── SessionDirective.php
 │   │   │   └── UpperDirective.php
 │   │   └── BladeRenderer.php
+│   ├── Auth.php              # Static authentication facade
+│   ├── Crypt.php             # AES-256-GCM Encryption handler
 │   ├── functions.php         # Global helpers (autoloaded)
 │   └── Registry.php          # Static container accessor
 ├── public/
 │   └── index.php             # Application entry point
 ├── templates/                # Blade template files (.blade.php)
+│   └── errors/               # Custom Blade error pages (404, 429, default, etc.)
 ├── tests/
-│   ├── FrameworkIntegration/ # Skeleton's own integration tests; delete when starting your project
+│   ├── Feature/              # Integration and feature tests
+│   ├── Integration/          # View and validation logic tests
 │   ├── Pest.php
 │   └── TestCase.php          # Base test case with HTTP helpers; keep this
 ├── slim                      # CLI Application Runner
@@ -351,13 +386,10 @@ php slim
 
 ### Built-in Commands
 
-The skeleton provides a default command to clear accumulated caches:
-
-```bash
-php slim cache:clear
-```
-
-This command flushes compiled templates in `cache/blade` and compiled DI container files in `var/cache/di`.
+| Command | Description |
+|---|---|
+| `key:generate` | Generate a 32-byte AES encryption key and save it to your `.env` file. |
+| `cache:clear` | Flush both the PHP-DI container and the BladeOne compilation caches. |
 
 ### Creating Custom Commands
 
@@ -417,7 +449,7 @@ Controls PHP-DI settings and all explicit service bindings.
 ],
 ```
 
-Pre-bound services: `PhpSession`, `SessionManagerInterface`, `SessionInterface`, `ResponseFactoryInterface`, `RouteParserInterface`, `BladeOne`, `BladeRenderer`, `ValidationFactory`.
+Pre-bound services: `PhpSession`, `SessionManagerInterface`, `SessionInterface`, `ResponseFactoryInterface`, `RouteParserInterface`, `BladeOne`, `BladeRenderer`, `ValidationFactory`, `DatabaseConnectionInterface`.
 
 ---
 
@@ -471,7 +503,7 @@ Register all custom CLI commands resolved via the DI Container.
 ```php
 return [
     'commands' => [
-        \Integrations\Commands\ClearCacheCommand::class,
+        // \App\Console\Commands\MyCommand::class,
     ],
 ];
 ```
@@ -489,6 +521,125 @@ Register custom validation rule classes to use as strings in rule arrays:
 ```
 
 The rule class is resolved from the DI container, so constructor injection works. See [Custom Validation Rules](#custom-validation-rules) for full usage.
+
+---
+
+### session.php
+
+Configures session lifetime, cookie settings, and the session driver (`php` or `database`). You can easily switch from the native `php` file driver to a high-performance, non-blocking `database` driver by setting `SESSION_DRIVER=database` in your `.env` file (requires running the sessions table migration).
+
+---
+
+### auth.php
+
+Configures the authentication table, primary key, session key, bcrypt rounds, and default redirect paths used by the authentication middlewares.
+
+---
+
+## Database & Hibla Integration
+
+The skeleton integrates Hibla Database (`hiblaphp/database`), a fully asynchronous, framework-agnostic database layer built natively on top of PHP Fibers and non-blocking socket streams. It features an expressive query builder, connection pooling, and full migration/seeding CLI support.
+
+For complete documentation on the Query Builder, Schema Manager, and writing Migrations/Seeders, please refer directly to the [Hibla Database Repository](https://github.com/hiblaphp/database).
+
+### Using the Facade (Recommended for Simple Cases)
+
+For rapid prototyping, simple controllers, or closure routes, use Hibla's static `DB` facade. It automatically bootstraps the database connection pool on its first invocation:
+
+```php
+use Hibla\QueryBuilder\DB;
+use function Hibla\await;
+
+$users = await(DB::table('users')->where('active', true)->get());
+```
+
+### Dependency Injection & Multi-Connection (For Testable Architectures)
+
+For highly testable systems or architectures utilizing multiple database connection pools, register the connections in your DI container to autowire them.
+
+#### Step 1: Bind Connections in `config/container.php`
+
+```php
+use Hibla\QueryBuilder\Interfaces\DatabaseConnectionInterface;
+
+'dependency_map' => [
+    // Default Connection Pool
+    DatabaseConnectionInterface::class => function () {
+        return \Hibla\QueryBuilder\DB::connection();
+    },
+
+    // Secondary Connection Pool (e.g. PostgreSQL analytics)
+    'db.pgsql' => function () {
+        return \Hibla\QueryBuilder\DB::connection('pgsql');
+    },
+],
+```
+
+#### Step 2: Constructor Injection with `#[Inject]`
+
+You can now inject specific connection instances into your class constructors. PHP-DI autowires the interfaces and handles parameter resolution:
+
+```php
+namespace App\Controllers;
+
+use DI\Attribute\Inject;
+use Hibla\QueryBuilder\Interfaces\DatabaseConnectionInterface;
+use Integrations\Http\Request;
+use Integrations\Http\Response;
+use function Hibla\await;
+
+class AnalyticsController
+{
+    public function __construct(
+        // Autowires the default database connection
+        private readonly DatabaseConnectionInterface $db,
+
+        // Injects the custom pgsql connection pool
+        #[Inject('db.pgsql')]
+        private readonly DatabaseConnectionInterface $analyticsDb
+    ) {}
+
+    public function __invoke(Request $request, Response $response): Response
+    {
+        $localUser = await($this->db->table('users')->find(5));
+        $analytics = await($this->analyticsDb->table('events')->where('user_id', 5)->get());
+
+        return $response->json([
+            'user'  => $localUser,
+            'stats' => $analytics,
+        ]);
+    }
+}
+```
+
+---
+
+## Authentication & Security
+
+The skeleton provides a robust, decoupled authentication layer using a static `Auth` facade, AES-256-GCM encrypted sessions, and dynamic redirects.
+
+### Crypt & Key Generation
+Session IDs are encrypted before being written to the session storage to prevent tampering and session hijacking. Generate your secure application key using the CLI:
+
+```bash
+php slim key:generate
+```
+
+### The Auth Facade
+Use the `Integrations\Auth` class to manage authentication state cleanly. Because `Auth::login()` expects a verified User ID (rather than an email and password), it can be used natively for Password Logins, Magic Links, or OAuth implementations!
+
+```php
+use Integrations\Auth;
+
+Auth::login($user->id); // Encrypts the ID and stores it in the session
+Auth::logout();         // Clears the session
+
+$check = Auth::check(); // bool
+$guest = Auth::guest(); // bool
+
+// Fetch the fresh user record asynchronously via Hibla
+$user = await(Auth::user());
+```
 
 ---
 
@@ -529,8 +680,8 @@ The rule class is resolved from the DI container, so constructor injection works
 | Method | Signature | Description |
 |---|---|---|
 | `json` | `(mixed $data, int $status = 0): self` | JSON body with `Content-Type: application/json`. Status defaults to the current status code when `0`. |
-| `html` | `(string $html, int $status = 200): self` | Raw HTML body |
-| `view` | `(string $template, array $data = [], int $status = 200): self` | Renders a Blade template |
+| `html` | `(string $html, int $status = 0): self` | Raw HTML body |
+| `view` | `(string $template, array $data = [], int $status = 0): self` | Renders a Blade template |
 | `redirect` | `(string $url, int $status = 302): self` | Redirect to a URL |
 | `routeRedirect` | `(string $routeName, array $data = [], array $queryParams = [], int $status = 302): self` | Redirect to a named route |
 | `back` | `(string $fallback = '/', int $status = 302): self` | Redirect to the `Referer` URL |
@@ -647,17 +798,11 @@ class StoreUserRequest extends FormRequest
 **Using a FormRequest in a controller:**
 
 ```php
-// Option A: pass the class-string to $request->validate()
 public function store(Request $request, Response $response): Response
 {
+    // Resolves the FormRequest from the DI container and validates automatically
     $validated = $request->validate(StoreUserRequest::class);
-    return $response->json($validated->all());
-}
-
-// Option B: type-hint it directly; PHP-DI autowires and injects it
-public function store(StoreUserRequest $form, Response $response): Response
-{
-    $validated = $form->validate();
+    
     return $response->json($validated->all());
 }
 ```
@@ -904,6 +1049,34 @@ Renders content only if a validation error exists for the given field. Sets `$me
 
 ---
 
+#### `@session('key')` / `@endsession`
+
+Renders content if a session key (or flash message) exists. The value is automatically extracted to a `$value` variable inside the block.
+
+```blade
+@session('success')
+    <div class="alert alert-success">{{ $value }}</div>
+@endsession
+```
+
+---
+
+#### `@auth` / `@endauth` and `@guest` / `@endguest`
+
+Renders content based on the user's authentication state.
+
+```blade
+@auth
+    <p>Welcome back, {{ await(auth_user())->name }}!</p>
+@endauth
+
+@guest
+    <a href="/login">Sign In</a>
+@endguest
+```
+
+---
+
 #### `@upper($expression)`
 
 Compile-time directive. Outputs the expression in uppercase.
@@ -982,6 +1155,16 @@ Usage:
 
 ---
 
+## Error Handling
+
+The skeleton overrides Slim's default ErrorHandler to provide seamless Blade integration for HTTP errors (like 404, 405, 429, 500).
+
+If an error occurs, the framework automatically looks for a matching template in `templates/errors/` (e.g., `templates/errors/404.blade.php`). If a specific template doesn't exist, it falls back to `templates/errors/default.blade.php`.
+
+API requests automatically receive a structured JSON response instead.
+
+---
+
 ## Global Helper Functions
 
 All helpers are autoloaded from `integrations/functions.php`.
@@ -999,6 +1182,10 @@ All helpers are autoloaded from `integrations/functions.php`.
 | `current_url` | `(bool $withQuery = false): string` | Current request URL |
 | `previous_url` | `(string $fallback = '/'): string` | Referer URL |
 | `method_field` | `(string $method): string` | Hidden `_METHOD` input HTML; prefer `@method()` in Blade templates |
+| `bcrypt` | `(string $value, ?int $rounds = null): string` | Hash a value using the bcrypt algorithm with dynamically configured cost rounds |
+| `auth` | `(): ?array` | Get the authenticated user session array |
+| `guest` | `(): bool` | Check if the current user is a guest (unauthenticated) |
+| `auth_user` | `(): PromiseInterface<object\|null>` | Asynchronously fetch the fresh user record from the database |
 
 **Common usage in templates:**
 ```blade
@@ -1074,6 +1261,25 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 
 ---
 
+### RateLimitMiddleware
+
+Provides robust rate limiting using a Rolling Window algorithm stored securely in the session. Supports Content Negotiation (JSON for API, HTML/Blade for web).
+
+```php
+$app->post('/login', [AuthController::class, 'login'])
+    ->add(new RateLimitMiddleware(requests: 5, window: 60, flashAndRedirect: true));
+```
+
+If `flashAndRedirect` is true, web requests are redirected back with a flashed error instead of a hard 429 page. The middleware automatically injects `X-RateLimit-*` and `Retry-After` headers.
+
+---
+
+### AuthMiddleware & GuestMiddleware
+
+Guards routes based on authentication state. `AuthMiddleware` redirects guests to `/login`, and `GuestMiddleware` redirects logged-in users to `/` (configurable in `config/auth.php`).
+
+---
+
 ## Session
 
 The session is provided by `odan/session`. In production it uses `PhpSession`. In tests it uses `MemorySession`, so no real PHP session is started.
@@ -1125,12 +1331,13 @@ composer test
 
 ### Before You Start: Clean Up the Skeleton Tests
 
-The `tests/FrameworkIntegration/` directory contains tests that verify the skeleton's own wiring: CSRF, middleware, Blade directives, the HTTP layer, and so on. They exist to prove the skeleton works correctly out of the box.
+The skeleton includes example integration tests to prove that your router, CSRF, middleware, custom directives, and response factories are working beautifully.
 
-Once you start building your own application, delete this directory:
+Once you start building your own application, you can safely delete the skeleton's example tests:
 
 ```bash
-rm -rf tests/FrameworkIntegration
+rm tests/Feature/*
+rm tests/Integration/*
 ```
 
 Keep `tests/TestCase.php` and `tests/Pest.php`. Those are your testing foundation. Then write your own tests using whatever structure you prefer:
@@ -1181,70 +1388,6 @@ it('shows the user profile page', function () {
 });
 ```
 
-**Register a test-only route inside a test:**
-```php
-it('validates and returns data', function () {
-    $this->app->post('/test', function (Request $request, Response $response) {
-        $validated = $request->validate(['name' => 'required|string|min:2']);
-        return $response->json($validated->all());
-    });
-
-    $response = $this->post('/test', ['name' => 'Alice']);
-    $data = json_decode((string) $response->getBody(), true);
-
-    expect($response->getStatusCode())->toBe(200)
-        ->and($data['name'])->toBe('Alice');
-});
-```
-
-**Testing a validation failure on a web route, expecting a redirect:**
-```php
-it('redirects back with session errors on failed validation', function () {
-    $this->app->post('/submit', function (Request $request, Response $response) {
-        $request->validate(['email' => 'required|email']);
-        return $response->json(['ok' => true]);
-    });
-
-    $response = $this->post('/submit', ['email' => 'not-an-email']);
-
-    expect($response->getStatusCode())->toBe(302);
-
-    $session = $this->container->get(SessionInterface::class);
-    expect($session->get('errors'))->toHaveKey('email');
-});
-```
-
-**Testing a validation failure on an API route, expecting 422 JSON:**
-```php
-it('returns 422 json on api validation failure', function () {
-    $this->app->post('/api/users', function (Request $request, Response $response) {
-        $request->validate(['email' => 'required|email']);
-        return $response->json(['ok' => true]);
-    })->add(ApiValidationMiddleware::class);
-
-    $response = $this->request('POST', '/api/users', ['email' => 'bad']);
-    $data = json_decode((string) $response->getBody(), true);
-
-    expect($response->getStatusCode())->toBe(422)
-        ->and($data['errors'])->toHaveKey('email');
-});
-```
-
-**Interacting with the session directly in a test:**
-```php
-it('reads a value the controller stored in session', function () {
-    $this->app->post('/login', function (Request $request, Response $response) {
-        session()->set('user_id', 42);
-        return $response->json(['ok' => true]);
-    });
-
-    $this->post('/login', []);
-
-    $session = $this->container->get(SessionInterface::class);
-    expect($session->get('user_id'))->toBe(42);
-});
-```
-
 **Testing method spoofing:**
 ```php
 it('routes spoofed PUT requests correctly', function () {
@@ -1258,4 +1401,3 @@ it('routes spoofed PUT requests correctly', function () {
     expect($response->getStatusCode())->toBe(200)
         ->and($data['id'])->toBe('5');
 });
-```
