@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Integrations\Http\Handlers\HttpErrorHandler;
 use Integrations\Http\Middleware\BindRequestMiddleware;
 use Integrations\Http\Middleware\CsrfMiddleware;
 use Integrations\Http\Middleware\WebValidationMiddleware;
@@ -68,9 +69,16 @@ return function (App $app): void {
      * Error handling. Must be the absolute LAST middleware added so that
      * it wraps everything and catches any unhandled exceptions.
      */
-    $app->addErrorMiddleware(
+    $errorMiddleware = $app->addErrorMiddleware(
         displayErrorDetails: (bool) env('APP_DEBUG', true),
         logErrors: true,
         logErrorDetails: true,
     );
+
+    $customErrorHandler = new HttpErrorHandler(
+        $app->getCallableResolver(),
+        $app->getResponseFactory()
+    );
+
+    $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 };

@@ -9,6 +9,7 @@ use Tests\FrameworkIntegration\Fixtures\Directives\TestFormatDirective;
 beforeEach(function () {
     $this->templatePath = __DIR__ . '/../../templates/test-directives.blade.php';
     $this->errorTemplatePath = __DIR__ . '/../../templates/test-error-directives.blade.php';
+    $this->sessionTemplatePath = __DIR__ . '/../../templates/test-session-directives.blade.php';
 
     $blade = $this->container->get(BladeOne::class);
 
@@ -35,6 +36,15 @@ beforeEach(function () {
     </div>
     HTML;
     file_put_contents($this->errorTemplatePath, $errorHtml);
+
+    $sessionHtml = <<<'HTML'
+    <div>
+        @session('status')
+            <div class="alert">{{ $value }}</div>
+        @endsession
+    </div>
+    HTML;
+    file_put_contents($this->sessionTemplatePath, $sessionHtml);
 });
 
 afterEach(function () {
@@ -43,6 +53,9 @@ afterEach(function () {
     }
     if (file_exists($this->errorTemplatePath)) {
         unlink($this->errorTemplatePath);
+    }
+    if (file_exists($this->sessionTemplatePath)) {
+        unlink($this->sessionTemplatePath);
     }
 });
 
@@ -77,4 +90,29 @@ it('evaluates built-in error directives correctly', function () {
     expect($content2)->toContain('class=" is-invalid "')
         ->and($content2)->toContain('<span class="error">The email address is already in use.</span>')
     ;
+});
+
+it('evaluates built-in session directives for standard session data', function () {
+    $response = blade_view('test-session-directives'); 
+    $content = (string) $response->getBody();
+
+    expect($content)->not->toContain('<div class="alert">');
+
+    $session = $this->container->get(SessionInterface::class);
+    $session->set('status', 'Profile updated successfully!');
+
+    $response2 = blade_view('test-session-directives');
+    $content2 = (string) $response2->getBody();
+
+    expect($content2)->toContain('<div class="alert">Profile updated successfully!</div>');
+});
+
+it('evaluates built-in session directives for flash messages', function () {
+    $session = $this->container->get(SessionInterface::class);
+    $session->getFlash()->add('status', 'Flash message received!');
+
+    $response = blade_view('test-session-directives'); 
+    $content = (string) $response->getBody();
+
+    expect($content)->toContain('<div class="alert">Flash message received!</div>');
 });

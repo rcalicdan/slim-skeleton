@@ -9,8 +9,10 @@ use Integrations\Http\ResponseFactory;
 use Integrations\Session\DatabaseSessionHandler;
 use Integrations\View\BladeRenderer;
 use Integrations\View\Directives\EndErrorDirective;
+use Integrations\View\Directives\EndSessionDirective;
 use Integrations\View\Directives\ErrorDirective;
 use Integrations\View\Directives\MethodDirective;
+use Integrations\View\Directives\SessionDirective;
 use Integrations\View\Directives\UpperDirective;
 use Odan\Session\PhpSession;
 use Odan\Session\SessionInterface;
@@ -82,6 +84,8 @@ return [
             $blade->directive('error', $c->get(ErrorDirective::class));
             $blade->directive('enderror', $c->get(EndErrorDirective::class));
             $blade->directive('method', $c->get(MethodDirective::class));
+            $blade->directive('session', $c->get(SessionDirective::class));
+            $blade->directive('endsession', $c->get(EndSessionDirective::class));
 
             /** @var array<string, callable|class-string> $directives */
             $directives = config('blade.directives', []);

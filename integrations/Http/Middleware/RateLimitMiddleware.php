@@ -40,20 +40,31 @@ class RateLimitMiddleware implements MiddlewareInterface
             return $timestamp > ($now - $this->window);
         });
 
-        if (\count($activeTimestamps) >= $this->requests) {
-            return $this->generateRateLimitResponse($request);
+        $currentCount = count($activeTimestamps);
+        $remaining = max(0, $this->requests - $currentCount);
+
+        if ($currentCount >= $this->requests) {
+            $oldestTimestamp = min($activeTimestamps);
+            $secondsToWait = ($oldestTimestamp + $this->window) - $now;
+            $secondsToWait = max(1, $secondsToWait);
+
+            return $this->generateRateLimitResponse($request, $secondsToWait);
         }
 
         $activeTimestamps[] = $now;
         session()->set($sessionKey, array_values($activeTimestamps));
 
-        return $handler->handle($request);
+        $response = $handler->handle($request);
+
+        return $response
+            ->withHeader('X-RateLimit-Limit', (string) $this->requests)
+            ->withHeader('X-RateLimit-Remaining', (string) ($remaining - 1));
     }
 
     /**
      * Generate the appropriate 429 response based on Content Negotiation.
      */
-    private function generateRateLimitResponse(ServerRequestInterface $request): ResponseInterface
+    private function generateRateLimitResponse(ServerRequestInterface $request, int $secondsToWait): ResponseInterface
     {
         $factory = $this->responseFactory ?? Registry::get()?->get(ResponseFactoryInterface::class);
 
@@ -61,18 +72,30 @@ class RateLimitMiddleware implements MiddlewareInterface
             throw new \RuntimeException('ResponseFactory is not registered in the container.');
         }
 
-        $response = $factory->createResponse(429);
+        $message = "Rate limit exceeded. Please try again in {$secondsToWait} seconds.";
+        
+        $response = $factory->createResponse(429)
+            ->withHeader('X-RateLimit-Limit', (string) $this->requests)
+            ->withHeader('X-RateLimit-Remaining', '0')
+            ->withHeader('Retry-After', (string) $secondsToWait); 
 
         if ($this->wantsJson($request)) {
             return $response->json([
-                'error'   => 'Too Many Requests',
-                'message' => 'Rate limit exceeded. Please try again in a moment.',
+                'error'       => 'Too Many Requests',
+                'message'     => $message,
+                'retry_after' => $secondsToWait,
             ]);
         }
 
-        return $response->html(
-            '<h1>429 Too Many Requests</h1><p>Rate limit exceeded. Please try again in a moment.</p>'
-        );
+        try {
+            return $response->view('errors.429', [
+                'statusCode'  => 429,
+                'message'     => $message,
+                'retry_after' => $secondsToWait,
+            ]);
+        } catch (\Throwable $e) {
+            return $response->html("<h1>429 Too Many Requests</h1><p>{$message}</p>");
+        }
     }
 
     /**

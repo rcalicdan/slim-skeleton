@@ -23,9 +23,11 @@ class Response extends SlimResponse
     /**
      * Return a raw HTML response.
      */
-    public function html(string $html, int $status = 200): self
+    public function html(string $html, int $status = 0): self
     {
-        $response = $this->withStatus($status)->withHeader('Content-Type', 'text/html');
+        $statusCode = $status > 0 ? $status : $this->getStatusCode();
+        $response = $this->withStatus($statusCode)
+            ->withHeader('Content-Type', 'text/html');
         $response->getBody()->write($html);
 
         return $response;
@@ -38,10 +40,12 @@ class Response extends SlimResponse
      * @param array<string, mixed> $data The data to pass to the template.
      * @param int $status The HTTP status code to set for the response.
      */
-    public function view(string $template, array $data = [], int $status = 200): self
+    public function view(string $template, array $data = [], int $status = 0): self
     {
+        $statusCode = $status > 0 ? $status : $this->getStatusCode();
+
         /** @var self $response */
-        $response = blade_view($template, $data, $this)->withStatus($status);
+        $response = blade_view($template, $data, $this)->withStatus($statusCode);
 
         return $response;
     }

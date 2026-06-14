@@ -12,7 +12,7 @@ beforeEach(function () {
     $this->session->delete('rate_limit');
 });
 
-it('allows requests within the rate limit and blocks on exceed', function () {
+it('allows requests within the rate limit and blocks on exceed with retry headers', function () {
     $this->app->get('/throttle-web', function (Request $request, Response $response) {
         return $response->html('OK');
     })->add(new RateLimitMiddleware(requests: 2, window: 10));
@@ -20,14 +20,19 @@ it('allows requests within the rate limit and blocks on exceed', function () {
     $request = Request::createTestRequest('GET', '/throttle-web');
 
     $res1 = $this->app->handle($request);
-    expect($res1->getStatusCode())->toBe(200);
+    expect($res1->getStatusCode())->toBe(200)
+        ->and($res1->getHeaderLine('X-RateLimit-Limit'))->toBe('2')
+        ->and($res1->getHeaderLine('X-RateLimit-Remaining'))->toBe('1');
 
     $res2 = $this->app->handle($request);
-    expect($res2->getStatusCode())->toBe(200);
+    expect($res2->getStatusCode())->toBe(200)
+        ->and($res2->getHeaderLine('X-RateLimit-Remaining'))->toBe('0');
 
     $res3 = $this->app->handle($request);
     
     expect($res3->getStatusCode())->toBe(429)
+        ->and($res3->getHeaderLine('X-RateLimit-Remaining'))->toBe('0')
+        ->and($res3->hasHeader('Retry-After'))->toBeTrue()
         ->and((string) $res3->getBody())->toContain('<h1>429 Too Many Requests</h1>');
 });
 
@@ -40,11 +45,11 @@ it('returns a structured json response when api requests are throttled', functio
 
     $res1 = $this->app->handle($request);
     expect($res1->getStatusCode())->toBe(200);
-
     $res2 = $this->app->handle($request);
     $data = json_decode((string) $res2->getBody(), true);
 
     expect($res2->getStatusCode())->toBe(429)
         ->and($res2->getHeaderLine('Content-Type'))->toBe('application/json')
-        ->and($data['error'])->toBe('Too Many Requests');
+        ->and($data['error'])->toBe('Too Many Requests')
+        ->and($data['retry_after'])->toBeGreaterThan(0);
 });

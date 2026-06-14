@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use function Rcalicdan\ConfigLoader\env;
 
-require 'vendor/autoload.php';
-
 return [
     /*
     |--------------------------------------------------------------------------
