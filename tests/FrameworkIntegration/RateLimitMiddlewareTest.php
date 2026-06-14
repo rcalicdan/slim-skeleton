@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use Integrations\Http\Middleware\RateLimitMiddleware;
 use Integrations\Http\Request;
 use Integrations\Http\Response;
-use Integrations\Http\Middleware\RateLimitMiddleware;
 use Odan\Session\SessionInterface;
 
 beforeEach(function () {
@@ -22,18 +22,21 @@ it('allows requests within the rate limit and blocks on exceed with retry header
     $res1 = $this->app->handle($request);
     expect($res1->getStatusCode())->toBe(200)
         ->and($res1->getHeaderLine('X-RateLimit-Limit'))->toBe('2')
-        ->and($res1->getHeaderLine('X-RateLimit-Remaining'))->toBe('1');
+        ->and($res1->getHeaderLine('X-RateLimit-Remaining'))->toBe('1')
+    ;
 
     $res2 = $this->app->handle($request);
     expect($res2->getStatusCode())->toBe(200)
-        ->and($res2->getHeaderLine('X-RateLimit-Remaining'))->toBe('0');
+        ->and($res2->getHeaderLine('X-RateLimit-Remaining'))->toBe('0')
+    ;
 
     $res3 = $this->app->handle($request);
-    
+
     expect($res3->getStatusCode())->toBe(429)
         ->and($res3->getHeaderLine('X-RateLimit-Remaining'))->toBe('0')
         ->and($res3->hasHeader('Retry-After'))->toBeTrue()
-        ->and((string) $res3->getBody())->toContain('<h1>429 Too Many Requests</h1>');
+        ->and((string) $res3->getBody())->toContain('<h1>429 Too Many Requests</h1>')
+    ;
 });
 
 it('returns a structured json response when api requests are throttled', function () {

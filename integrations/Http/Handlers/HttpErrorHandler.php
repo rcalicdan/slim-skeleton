@@ -33,7 +33,7 @@ class HttpErrorHandler extends ErrorHandler
 
         if (str_contains($accept, 'application/json') || str_starts_with($path, '/api')) {
             return $response->json([
-                'error'   => $statusCode,
+                'error' => $statusCode,
                 'message' => $message,
             ]);
         }
@@ -41,13 +41,13 @@ class HttpErrorHandler extends ErrorHandler
         try {
             return $response->view("errors.{$statusCode}", [
                 'statusCode' => $statusCode,
-                'message'    => $message,
+                'message' => $message,
             ]);
         } catch (\Throwable $e) {
             try {
                 return $response->view('errors.default', [
                     'statusCode' => $statusCode,
-                    'message'    => $message,
+                    'message' => $message,
                 ]);
             } catch (\Throwable $e) {
                 return $response->html("<h1>Error {$statusCode}</h1><p>{$message}</p>");

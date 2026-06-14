@@ -93,7 +93,7 @@ it('evaluates built-in error directives correctly', function () {
 });
 
 it('evaluates built-in session directives for standard session data', function () {
-    $response = blade_view('test-session-directives'); 
+    $response = blade_view('test-session-directives');
     $content = (string) $response->getBody();
 
     expect($content)->not->toContain('<div class="alert">');
@@ -111,7 +111,7 @@ it('evaluates built-in session directives for flash messages', function () {
     $session = $this->container->get(SessionInterface::class);
     $session->getFlash()->add('status', 'Flash message received!');
 
-    $response = blade_view('test-session-directives'); 
+    $response = blade_view('test-session-directives');
     $content = (string) $response->getBody();
 
     expect($content)->toContain('<div class="alert">Flash message received!</div>');

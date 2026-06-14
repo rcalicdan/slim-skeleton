@@ -27,7 +27,8 @@ class Response extends SlimResponse
     {
         $statusCode = $status > 0 ? $status : $this->getStatusCode();
         $response = $this->withStatus($statusCode)
-            ->withHeader('Content-Type', 'text/html');
+            ->withHeader('Content-Type', 'text/html')
+        ;
         $response->getBody()->write($html);
 
         return $response;
