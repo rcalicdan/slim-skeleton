@@ -372,7 +372,9 @@ Controllers, `RequestValidator` subclasses, and single-action handlers are **aut
 
 ## Console CLI (Command Line Interface)
 
-The skeleton integrates Symfony Console (`symfony/console`) to allow running CLI commands. It uses the `slim` file in the project's root folder as the application runner.
+The skeleton integrates Symfony Console (`symfony/console`) to allow running CLI commands. It uses the `slim` executable in the project's root folder as the application runner.
+
+Because the `slim` runner boots your application's PHP-DI container before executing, **all console commands have full access to your DI-registered services, settings, and database connection pools.**
 
 To run the console, execute it from the root directory:
 
@@ -384,45 +386,31 @@ chmod +x slim
 php slim
 ```
 
-### Built-in Commands
+### Built-in & Integrated Commands
+
+Within this skeleton, you do not need to use Hibla's standalone `./vendor/bin/hibla-db` binary. All schema and migration utilities are merged directly into your unified `php slim` entry point:
 
 | Command | Description |
 |---|---|
-| `key:generate` | Generate a 32-byte AES encryption key and save it to your `.env` file. |
+| **Framework Utility** | |
+| `key:generate` | Generate a 32-byte AES encryption key and save it to `.env`. |
 | `cache:clear` | Flush both the PHP-DI container and the BladeOne compilation caches. |
-
-### Creating Custom Commands
-
-To create a custom command, extend `Symfony\Component\Console\Command\Command` and define your command's name, description, options, and arguments within the `configure()` method:
-
-```php
-namespace App\Console\Commands;
-
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
-
-class ExampleCommand extends Command
-{
-    protected function configure(): void
-    {
-        $this
-            ->setName('example:run')
-            ->setDescription('An example command description');
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $io = new SymfonyStyle($input, $output);
-        $io->success('Command executed successfully!');
-
-        return Command::SUCCESS;
-    }
-}
+| **Hibla Database Migrations** | |
+| `migrate` | Run all pending database migrations. |
+| `migrate:rollback` | Roll back the last batch of migrations. |
+| `migrate:reset` | Roll back all migrations. |
+| `migrate:refresh` | Reset and re-run all migrations. |
+| `migrate:fresh` | Drop all database tables and re-run migrations from scratch. |
+| `migrate:status` | Show the execution status of every migration. |
+| **Hibla Code Generation** | |
+| `make:migration <name>` | Generate a new schema migration file under `database/migrations/`. |
+| `make:seeder <name>` | Generate a new database seeder file under `database/seeders/`. |
+| **Hibla Seeders & Utilities** | |
+| `db:seed` | Run database seeders (runs root `DatabaseSeeder` if present). |
+| `schema:dump` | Dump the current database schema to a SQL file. |
+| `status` | Show database config resolution status. |
+| `publish:templates` | Publish pagination templates to your resources path. |
 ```
-
-After creating your command class, register it in `config/console.php` to make it accessible to the runner. Because these commands are resolved through the DI container, they support constructor autowiring.
 
 ---
 
@@ -610,6 +598,25 @@ class AnalyticsController
         ]);
     }
 }
+```
+
+### Schema Migrations & Seeding
+
+Since Hibla's commands are natively registered inside the `slim` entry point, managing your database lifecycle is seamless. Always run migrations and code generators via the local `slim` executable:
+
+```bash
+# 1. Generate a migration
+php slim make:migration create_notes_table
+
+# 2. Run the migration
+php slim migrate
+
+# 3. Check migration statuses across connections
+php slim migrate:status --all
+
+# 4. Generate and run a database seeder
+php slim make:seeder NoteSeeder
+php slim db:seed --class=NoteSeeder
 ```
 
 ---
