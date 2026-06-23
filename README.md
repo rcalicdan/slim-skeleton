@@ -42,7 +42,7 @@ Whether you're building a traditional web app, an API, or something in between, 
   - [ValidatedData](#validateddata)
 - [Validation](#validation)
   - [Inline Validation](#inline-validation)
-  - [FormRequest](#formrequest)
+  - [RequestValidator](#requestvalidator)
   - [Custom Validation Rules](#custom-validation-rules)
   - [IDOR Protection](#idor-protection)
 - [Blade Templating](#blade-templating)
@@ -145,7 +145,7 @@ slim-skeleton/
 │   │   │   ├── GuestMiddleware.php
 │   │   │   ├── RateLimitMiddleware.php
 │   │   │   └── WebValidationMiddleware.php
-│   │   ├── FormRequest.php
+│   │   ├── RequestValidator.php
 │   │   ├── Request.php
 │   │   ├── Response.php
 │   │   ├── ResponseFactory.php
@@ -366,7 +366,7 @@ $session   = $container->get(SessionInterface::class);
 
 > Prefer constructor injection in controllers and services. Only reach for `Registry::get()` in global functions or static contexts where injection isn't possible.
 
-Controllers, `FormRequest` subclasses, and single-action handlers are **autowired**, so no manual registration is needed.
+Controllers, `RequestValidator` subclasses, and single-action handlers are **autowired**, so no manual registration is needed.
 
 ---
 
@@ -669,7 +669,7 @@ $user = await(Auth::user());
 | `url` | `(): string` | Current URL without query string |
 | `fullUrl` | `(): string` | Current URL including query string |
 | `previousUrl` | `(string $fallback = '/'): string` | Value of the `Referer` header |
-| `validate` | `(array\|string\|FormRequest $rules): ValidatedData` | See [Validation](#validation) |
+| `validate` | `(array\|string\|RequestValidator $rules): ValidatedData` | See [Validation](#validation) |
 
 ---
 
@@ -745,17 +745,17 @@ On failure, `ValidationException` is thrown. `WebValidationMiddleware` catches i
 
 ---
 
-### FormRequest
+### RequestValidator
 
-Create a class extending `FormRequest` for reusable, encapsulated validation. Best for complex forms or when you want to keep controllers thin.
+Create a class extending `RequestValidator` for reusable, encapsulated validation. Best for complex forms or when you want to keep controllers thin.
 
 ```php
-// app/Http/Requests/StoreUserRequest.php
+// app/Http/Requests/StoreUserValidator.php
 namespace App\Http\Requests;
 
-use Integrations\Http\FormRequest;
+use Integrations\Http\RequestValidator;
 
-class StoreUserRequest extends FormRequest
+class StoreUserValidator extends RequestValidator
 {
     public function rules(): array
     {
@@ -795,13 +795,13 @@ class StoreUserRequest extends FormRequest
 }
 ```
 
-**Using a FormRequest in a controller:**
+**Using a RequestValidator in a controller:**
 
 ```php
 public function store(Request $request, Response $response): Response
 {
-    // Resolves the FormRequest from the DI container and validates automatically
-    $validated = $request->validate(StoreUserRequest::class);
+    // Resolves the RequestValidator from the DI container and validates automatically
+    $validated = $request->validate(StoreUserValidator::class);
     
     return $response->json($validated->all());
 }
@@ -841,7 +841,7 @@ There are two ways to use a custom rule and you can mix them freely.
 
 #### Option A: Registered String Rule
 
-Best when you want to reference the rule by name across many FormRequests or inline validations, and when the rule needs injected dependencies like a database connection.
+Best when you want to reference the rule by name across many RequestValidators or inline validations, and when the rule needs injected dependencies like a database connection.
 
 **Step 1: Create the rule class.**
 
@@ -882,7 +882,7 @@ $request->validate([
     'email' => 'required|email|unique_email',
 ]);
 
-// In a FormRequest
+// In a RequestValidator
 public function rules(): array
 {
     return [
@@ -928,7 +928,7 @@ $request->validate([
     'password' => ['required', 'min:8', new StrongPasswordRule()],
 ]);
 
-// In a FormRequest
+// In a RequestValidator
 public function rules(): array
 {
     return [
@@ -952,7 +952,7 @@ public function rules(): array
 
 ### IDOR Protection
 
-`FormRequest::validate()` automatically strips route segment arguments from the returned `ValidatedData`. This prevents a client from overwriting URL parameters through the request body, a common parameter pollution and IDOR vector.
+`RequestValidator::validate()` automatically strips route segment arguments from the returned `ValidatedData`. This prevents a client from overwriting URL parameters through the request body, a common parameter pollution and IDOR vector.
 
 ```php
 // Route: POST /users/{id}

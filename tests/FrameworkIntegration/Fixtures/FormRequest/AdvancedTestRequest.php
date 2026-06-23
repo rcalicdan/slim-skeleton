@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\FrameworkIntegration\Fixtures\FormRequest;
 
-use Integrations\Http\FormRequest;
+use Integrations\Http\RequestValidator;
 
-class AdvancedTestRequest extends FormRequest
+class AdvancedTestRequest extends RequestValidator
 {
     public function rules(): array
     {

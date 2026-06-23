@@ -8,7 +8,7 @@ use Integrations\Http\Exceptions\ValidationException;
 use Integrations\Registry;
 use Somnambulist\Components\Validation\Factory as ValidationFactory;
 
-abstract class FormRequest
+abstract class RequestValidator
 {
     public function __construct(protected readonly Request $request)
     {

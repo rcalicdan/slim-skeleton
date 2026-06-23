@@ -160,34 +160,34 @@ class Request extends SlimRequest
     }
 
     /**
-     * @param array<string, string|array<mixed>>|class-string<FormRequest>|FormRequest $rules
+     * @param array<string, string|array<mixed>>|class-string<RequestValidator>|RequestValidator $rules
      *
      * @return ValidatedData
      *
      * @throws ValidationException|\InvalidArgumentException
      */
-    public function validate(array|string|FormRequest $rules): ValidatedData
+    public function validate(array|string|RequestValidator $rules): ValidatedData
     {
-        if ($rules instanceof FormRequest) {
+        if ($rules instanceof RequestValidator) {
             return $rules->validate();
         }
 
         if (\is_string($rules)) {
-            if (! is_a($rules, FormRequest::class, true)) {
+            if (! is_a($rules, RequestValidator::class, true)) {
                 throw new \InvalidArgumentException(
-                    "{$rules} must extend " . FormRequest::class
+                    "{$rules} must extend " . RequestValidator::class
                 );
             }
 
             $container = Registry::get();
 
             if ($container instanceof \DI\Container) {
-                $formRequest = $container->make($rules, ['request' => $this]);
+                $requestValidator = $container->make($rules, ['request' => $this]);
             } else {
-                $formRequest = new $rules($this);
+                $requestValidator = new $rules($this);
             }
 
-            return $formRequest->validate();
+            return $requestValidator->validate();
         }
 
         /** @var ValidationFactory $factory */
