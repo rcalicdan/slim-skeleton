@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Hibla\Cancellation\CancellationToken;
+use Hibla\Promise\Interfaces\PromiseInterface;
+use Integrations\Auth;
 use Integrations\Registry;
 use Integrations\View\BladeRenderer;
 use Odan\Session\SessionInterface;
@@ -9,6 +12,44 @@ use Psr\Http\Message\ResponseInterface;
 use Slim\Interfaces\RouteParserInterface;
 
 use function Rcalicdan\ConfigLoader\env;
+
+if (! function_exists('session_flash')) {
+    /**
+     * Set a flash message in the session.
+     */
+    function session_flash(string $key, string $message): void
+    {
+        $session = session();
+        
+        if ($session instanceof SessionInterface) {
+            $session->getFlash()->add($key, $message);
+        }
+    }
+}
+
+if (! function_exists('app')) {
+    /**
+     * Get the container instance or resolve a dependency from it.
+     *
+     * @template T
+     * @param class-string<T>|string|null $id The dependency ID/class name to resolve.
+     * @return T|\Psr\Container\ContainerInterface|null
+     */
+    function app(?string $id = null): mixed
+    {
+        $container = Registry::get();
+
+        if ($container === null) {
+            return null;
+        }
+
+        if ($id === null) {
+            return $container;
+        }
+
+        return $container->get($id);
+    }
+}
 
 if (! function_exists('blade_view')) {
     /**
@@ -217,5 +258,44 @@ if (! function_exists('bcrypt')) {
         $cost = $rounds ?? (int) env('BCRYPT_ROUNDS', 12);
 
         return password_hash($value, PASSWORD_BCRYPT, ['cost' => $cost]);
+    }
+}
+
+if(! function_exists('await')) {
+    /**
+     * Waits for the promise to resolve and returns a value if any;
+     * 
+     * @template TValue 
+     * @param PromiseInterface<TValue> $promise The promise to await.
+     * @param CancellationToken|null $token The cancellation token to use for the operation.
+     * @return TValue The resolved value.
+     */
+    function await(PromiseInterface $promise, ?CancellationToken $token = null): mixed
+    {
+        return Hibla\await($promise, $token);
+    }
+}
+
+if(! function_exists('async')) {
+    /**
+     * Creates a new async function that returns a promise.
+     * 
+     * @template TValue
+     * @param callable(): TValue $callback The callback function to execute asynchronously.
+     * @return PromiseInterface<TValue> The promise that will be resolved with the result of the callback.
+     */
+    function async(callable $callback): PromiseInterface
+    {
+        return Hibla\async($callback);
+    }
+}
+
+if(! function_exists('auth_user')) {
+    /**
+     * Get the authenticated user.
+     */
+    function auth_user(): \stdClass|null
+    {
+        return Hibla\await(Auth::user());
     }
 }
