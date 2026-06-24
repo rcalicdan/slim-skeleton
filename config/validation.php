@@ -15,6 +15,6 @@ return [
      * dependencies (like Database connections) into your Rule constructors!
      */
     'rules' => [
-        //'allowed_username' => AllowedUsernameRule::class,
+        'unique' => \Integrations\Rules\UniqueRule::class,
     ],
 ];
